@@ -1,4 +1,5 @@
 <?php
+use FactFinder\FfGptTools\lib\FfGptToolsCronjob;
 
 // Check if the cronjob addon is available
 if (rex_addon::get('cronjob')->isAvailable()) {

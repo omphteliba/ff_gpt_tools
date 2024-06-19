@@ -17,7 +17,7 @@ require_once rex_path::base('vendor/autoload.php');
 require_once rex_path::addon($addon_name, 'lib/GptTools.php');
 
 // Check if the GptTools class is loaded correctly
-if (!class_exists('GptTools')) {
+if (!class_exists('FactFinder\FfGptTools\lib\GptTools')) {
     echo rex_view::error("Error: The GptTools class could not be loaded. Please check the file path and make sure the class is defined correctly.");
     die();
 }

@@ -2,6 +2,7 @@
 
 namespace FactFinder\FfGptTools\pages;
 
+use FactFinder\FfGptTools\lib\GptTools;
 use rex_addon;
 use rex_fragment;
 use rex_logger;

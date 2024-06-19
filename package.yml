@@ -40,11 +40,11 @@ page:
 # Abhängigkeiten
 # Anforderungen ans System oder anderere AddOns, um dieses AddOn installieren oder updaten zu können
 requires:
-    redaxo: "^5.10" # benötigt mindestens REDAXO 5.10
+    redaxo: "^5.17" # benötigt mindestens REDAXO 5.17
     packages:
         yrewrite: ">=2.0" # benötigt mindestens YRewrite 2.0
     php:
-        version: ">=8.1" # benötigt mindestens PHP 7.3
+        version: ">=8.1" # benötigt mindestens PHP 8.1
         extensions: [ gd, xml ] # benötigt die PHP-Extensions GDlib und XML
 
 configvars:
