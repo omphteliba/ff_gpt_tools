@@ -1,0 +1,52 @@
+# Definiert das AddOn, grundlegende Einstellungen - Diese Detei ist unbedingt erforderlich
+# Dokumentation der `package.yml` https://redaxo.org/doku/master/addon-package
+# Alle hier gesetzten Werte können über `$addon->getProperty($key)` abgefragt werden
+
+package: ff_gpt_tools # Pflichtfeld
+version: "0.2" # Pflichtfeld
+author: omphteliba # Pflichtfeld für FOR-AddOns
+supportpage: https://github.com/omphteliba/ff_gpt_tools # Github-Adresse des AddOns
+
+# Werte die mit `translate:` beginnen, werden anhand der Sprachdatei (lang/sprache.lang) übersetzt.
+# Der AddOn-Präfix (hier `demo_addon_`) kann weggelassen werden.
+
+# Seiten des AddOns
+page:
+    title: "translate:navititle" # Bezeichnung in der REDAXO Navigation
+    icon: rex-icon fa-desktop # Icon von Font Awesome
+    perm: ff_gpt_tools[] # Seite ist nur für Admins erreichbar
+    pjax: false # Hier kann die Verwendung von PJAX für das eigene AddOn gesteuert werden
+    # mit der Einstellung `prio` kann die Position im Hauptmenü beeinflusst werden
+    #prio: 10
+
+    # Unterseiten
+    subpages:
+        meta_generate:
+            title: "translate:meta_generate"
+            perm: ff_gpt_tools[meta_generate] # Das AddOn-Benutzerrecht `meta_generate` ist für diese Unterseite erforderlich. Admins haben alle Rechte.
+            icon: rex-icon fa-cogs
+        image_description:
+            title: "translate:image_description"
+            perm: ff_gpt_tools[image_description] # Das AddOn-Benutzerrecht `meta_generate` ist für diese Unterseite erforderlich. Admins haben alle Rechte.
+            icon: rex-icon fa-picture-o
+        api:
+            title: 'translate:api'
+            icon: rex-icon fa-cogs
+        config:
+            title: "translate:config"
+            perm: ff_gpt_tools[config] # Das noch spezifischere AddOn-Benutzerrecht `config` ist für diese Unterseite erforderlich. Admins haben alle Rechte.
+            icon: rex-icon fa-wrench # Icon von Font Awesome
+
+# Abhängigkeiten
+# Anforderungen ans System oder anderere AddOns, um dieses AddOn installieren oder updaten zu können
+requires:
+    redaxo: "^5.10" # benötigt mindestens REDAXO 5.10
+    packages:
+        yrewrite: ">=2.0" # benötigt mindestens YRewrite 2.0
+    php:
+        version: ">=8.1" # benötigt mindestens PHP 7.3
+        extensions: [ gd, xml ] # benötigt die PHP-Extensions GDlib und XML
+
+configvars:
+    apikey:
+    descriptionfield:
