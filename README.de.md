@@ -43,10 +43,10 @@ Dieses REDAXO AddOn integriert die Leistungsfähigkeit der GPT-Sprachmodelle von
 
 **Unterstützung:**
 
-Besuchen Sie unseren [GitHub Repository Link], um Unterstützung zu erhalten oder Probleme zu melden.
+Besuchen Sie unseren https://github.com/omphteliba/ff_gpt_tools/, um Unterstützung zu erhalten oder Probleme zu melden.
 
 **Beiträge:**
 
-Beiträge sind willkommen! Sie können gerne Pull-Requests einreichen oder Issues auf [GitHub Repository Link] öffnen.
+Beiträge sind willkommen! Sie können gerne Pull-Requests einreichen oder Issues auf https://github.com/omphteliba/ff_gpt_tools/ öffnen.
 
 
