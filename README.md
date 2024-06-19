@@ -37,6 +37,11 @@ This REDAXO addon integrates the power of OpenAI's GPT language models (like GPT
 - REDAXO CMS
 - An active OpenAI API key
 
+**To Do:**
+
+- At the moment the AI generated meta description are saved in the task table. I changed it from directly writing the result from OpenAI to the article, because there where too many false answers. I will implement a review function to check the generated meta descriptions before saving them to the article.
+- The generation of the image descriptions isn't working yet.
+
 **Support:**
 
 For support or to report issues, please visit https://github.com/omphteliba/ff_gpt_tools/.

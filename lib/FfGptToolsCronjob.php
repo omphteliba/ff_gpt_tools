@@ -183,6 +183,7 @@ class FfGptToolsCronjob extends rex_cronjob
         $metaDescription = $this->removeHtmlEntities($gptTools->getMetaDescription());
 
         if ($gptTools->updateRedaxoMetaDescription($metaDescription, $articleId, $clang)) {
+
             $this->updateDatabaseEntry($sqlObject, $tableName, $metaDescription);
 
             return true;
