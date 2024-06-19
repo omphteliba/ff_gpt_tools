@@ -39,10 +39,10 @@ This REDAXO addon integrates the power of OpenAI's GPT language models (like GPT
 
 **Support:**
 
-For support or to report issues, please visit [GitHub Repository Link].
+For support or to report issues, please visit https://github.com/omphteliba/ff_gpt_tools/.
 
 **Contributing:**
 
-Contributions are welcome! Feel free to submit pull requests or open issues on the [GitHub Repository Link].
+Contributions are welcome! Feel free to submit pull requests or open issues on the https://github.com/omphteliba/ff_gpt_tools/.
 
 
