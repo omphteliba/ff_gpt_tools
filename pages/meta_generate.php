@@ -183,44 +183,109 @@ if ($content) {
 
 // Warteschlangen Infos
 
-$yform = $addon->getProperty('yform', []);
-$yform = $yform[\rex_be_controller::getCurrentPage()] ?? [];
+$table_name    = rex::getTable('ff_gpt_tools_tasks');
 
-$table_name    = 'rex_ff_gpt_tools_tasks';
-$show_title    = true === ($yform['show_title'] ?? false);
-$wrapper_class = $yform['wrapper_class'] ?? '';
+// fetch the fields id, done, article_id, date, meta_description, clang, prompt and error_flag from database $table_name and show it as a html table
+$sql = rex_sql::factory();
+$sql->setDebug(false);
+$sql->setQuery('SELECT id, done, article_id, date, meta_description, clang, prompt, error_flag FROM ' . $table_name . ' ORDER BY date DESC');
 
-if ('' !== $table_name) {
-    /**
-     * STAN: Using $_REQUEST is forbidden, use rex_request::request() or rex_request() instead.
-     * Hierfür gibt es keinen Ersatz durch eine REX-Methode/Funktion.
-     *
-     * @phpstan-ignore-next-line
-     */
-    $_REQUEST['table_name'] = $table_name;
+$content = '';
+$content .= '<table class="table table-striped">';
+$content .= '<thead>';
+$content .= '<tr>';
+$content .= '<th scope="col">ID</th>';
+$content .= '<th scope="col">Done</th>';
+$content .= '<th scope="col">Article ID</th>';
+$content .= '<th scope="col">Date</th>';
+$content .= '<th scope="col">Meta Description</th>';
+$content .= '<th scope="col">Language</th>';
+$content .= '<th scope="col">Prompt</th>';
+$content .= '<th scope="col">Error</th>';
+// functions
+$content .= '<th scope="col">Functions</th>';
+$content .= '</tr>';
+$content .= '</thead>';
+$content .= '<tbody>';
+
+foreach ($sql as $row) {
+    $content .= '<tr>';
+    $content .= '<td>' . $row->getValue('id') . '</td>';
+    $content .= '<td>' . $row->getValue('done') . '</td>';
+    $content .= '<td>' . $row->getValue('article_id') . '</td>';
+    $content .= '<td>' . $row->getValue('date') . '</td>';
+    $content .= '<td>' . $row->getValue('meta_description') . '</td>';
+    $content .= '<td>' . $row->getValue('clang') . '</td>';
+    $content .= '<td>' . $row->getValue('prompt') . '</td>';
+    $content .= '<td>' . $row->getValue('error_flag') . '</td>';
+    // show the copy button only when meta_description isn't empty
+    if ($row->getValue('meta_description') !== '') {
+        $content .= '<td><a href="' . rex_url::currentBackendPage(['func' => 'copy', 'id' => $row->getValue('id')]) . '">Copy</a></td>';
+    }
+
+    $content .= '</tr>';
+}
+$content .= '</tbody>';
+$content .= '</table>';
+
+// copy function
+if (rex_get('func') === 'copy') {
+    $id = rex_get('id', 'int');
+    $sql->setTable($table_name);
+    $sql->setWhere('id = :id', ['id' => $id]);
+    $sql->select();
+    $article_id = $sql->getValue('article_id');
+    $meta_description = $sql->getValue('meta_description');
+    $clang = $sql->getValue('clang');
+    $description_field = $addon->getConfig('descriptionfield');
+    $sql->setTable(rex::getTable('article'));
+    $sql->setValue($description_field, $meta_description);
+    $sql->setWhere('id = :id AND clang_id = :clang', ['id' => $article_id, 'clang' => $clang]);
+    $sql->update();
+    $sql->setTable($table_name);
+    $sql->setWhere('id = :id', ['id' => $id]);
+    $sql->setValue('done', 1);
+    $sql->update();
 }
 
-if (!$show_title) {
-    \rex_extension::register(
-        'YFORM_MANAGER_DATA_PAGE_HEADER',
-        static function (rex_extension_point $ep) {
-            if ($ep->getParam('yform')->table->getTableName() === $ep->getParam('table_name')) {
-                return '';
-            }
-        },
-        \rex_extension::EARLY, ['table_name' => $table_name]
-    );
+$fragment = new rex_fragment();
+$fragment->setVar('title', 'Tasks', false);
+$fragment->setVar('body', $content, false);
+try {
+    echo $fragment->parse('core/page/section.php');
+} catch (rex_exception $e) {
+    rex_logger::logException($e);
 }
 
-if ('' !== $wrapper_class) {
-    echo '<div class="', $wrapper_class, '">';
+// Warteschlangen löschen
+if (rex_post('delete', 'boolean')) {
+    $sql = rex_sql::factory();
+    $sql->setDebug(false);
+    $sql->setQuery('DELETE FROM ' . $table_name);
 }
 
-include \rex_path::plugin('yform', 'manager', 'pages/data_edit.php');
+$content = '';
+$content .= '<form action="' . rex_url::currentBackendPage() . '" method="post">';
+$content .= '<button class="btn btn-save rex-form-aligned" type="submit" name="delete" value="' . rex_i18n::msg('ff_gpt_tools_delete') . '">' . rex_i18n::msg('ff_gpt_tools_delete') . '</button>';
+// add a button to trigger the cronjob to generate the meta descriptions
+$content .= '<button class="btn btn-save rex-form-aligned" type="submit" name="cronjob" value="' . rex_i18n::msg('ff_gpt_tools_generate_meta_descriptions') . '">' . rex_i18n::msg('ff_gpt_tools_generate_meta_descriptions') . '</button>';
+$content .= '</form>';
 
-if ('' !== $wrapper_class) {
-    echo '</div>';
+$fragment = new rex_fragment();
+$fragment->setVar('title', 'Delete Tasks', false);
+$fragment->setVar('body', $content, false);
+try {
+    echo $fragment->parse('core/page/section.php');
+} catch (rex_exception $e) {
+    rex_logger::logException($e);
 }
+
+// function to trigger the cronjob by calling lib/FFGptToolsCronjob.php
+if (rex_get('func') === 'cronjob') {
+    $cronjob = new \FactFinder\FfGptTools\lib\FFGptToolsCronjob();
+    $cronjob->execute();
+}
+
 
 // Info-Box
 $content = '';

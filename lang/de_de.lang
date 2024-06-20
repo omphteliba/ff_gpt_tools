@@ -38,7 +38,7 @@ ff_gpt_tools_generate_meta_descriptions_pages_articlelist = Artikel Liste
 ff_gpt_tools_generate_meta_descriptions_pages_categories = Kategorien
 ff_gpt_tools_generate_meta_descriptions_pages_select_note = Ausser "Seiten ohne Meta Description" überschreiben alle anderen Optionen die bestehenden Meta Descriptions.
 
-ff_gpt_tools_generate_meta_descriptions_submit_button = Generate
+ff_gpt_tools_generate_meta_descriptions_submit_button = In Warteschlage einstellen
 
 ff_gpt_tools_cronjob = GPT-Tools: Generate Meta Descriptions
 
