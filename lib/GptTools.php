@@ -20,7 +20,7 @@ use OpenAI;
 
 $addon_name = 'ff_gpt_tools';
 require_once rex_path::addon($addon_name, 'vendor/autoload.php');
-require_once rex_path::base('vendor/autoload.php');
+//require_once rex_path::base('vendor/autoload.php');
 
 /**
  * GptTools Class
