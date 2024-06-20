@@ -16,7 +16,7 @@ use rex_url;
 $addon_name = 'ff_gpt_tools';
 $addon      = rex_addon::get($addon_name);
 require_once rex_path::addon($addon_name, 'vendor/autoload.php');
-require_once rex_path::base('vendor/autoload.php');
+//require_once rex_path::base('vendor/autoload.php');
 require_once rex_path::addon($addon_name, 'lib/GptTools.php');
 
 $apiKey = $addon->getConfig('apikey');
