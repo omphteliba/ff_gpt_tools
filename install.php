@@ -45,4 +45,6 @@ rex_sql_table::get(rex::getTable('ff_gpt_tools_tasks'))
     ->ensureColumn(new rex_sql_column('temp', 'varchar(191)', false, ''))
     ->ensureColumn(new rex_sql_column('max_token', 'varchar(191)', false, ''))
     ->ensureColumn(new rex_sql_column('error_flag', 'int(11)', true))
+    ->ensureColumn(new rex_sql_column('error_text', 'text', true))
+    ->ensureColumn(new rex_sql_column('result', 'text'))
     ->ensure();

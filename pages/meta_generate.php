@@ -27,6 +27,8 @@ require_once rex_path::addon($addon_name, 'vendor/autoload.php');
 //require_once rex_path::base('vendor/autoload.php');
 require_once rex_path::addon($addon_name, 'lib/GptTools.php');
 
+$table_name    = rex::getTable('ff_gpt_tools_tasks');
+
 $apiKey = $addon->getConfig('apikey');
 if (empty($apiKey)) {
     echo rex_view::error("Error: API key is missing. Please configure it <a href='" . rex_url::backendPage($addon_name . '/config') . "'>here</a>.");
@@ -181,6 +183,42 @@ if ($content) {
     }
 }
 
+
+// function to trigger the cronjob by calling lib/FFGptToolsCronjob.php
+if (rex_get('func') === 'cronjob') {
+    $cronjob = new \FactFinder\FfGptTools\lib\FFGptToolsCronjob();
+    $cronjob->execute();
+}
+
+// copy function
+if (rex_get('func') === 'copy') {
+    $id = rex_get('id', 'int');
+    $sql = rex_sql::factory();
+    $sql->setDebug(false);
+    $sql->setTable($table_name);
+    $sql->setWhere('id = :id', ['id' => $id]);
+    $sql->select();
+    $article_id = $sql->getValue('article_id');
+    $meta_description = $sql->getValue('meta_description');
+    $clang = $sql->getValue('clang');
+    $description_field = $addon->getConfig('descriptionfield');
+    $sql->setTable(rex::getTable('article'));
+    $sql->setValue($description_field, $meta_description);
+    $sql->setWhere('id = :id AND clang_id = :clang', ['id' => $article_id, 'clang' => $clang]);
+    $sql->update();
+    $sql->setTable($table_name);
+    $sql->setWhere('id = :id', ['id' => $id]);
+    $sql->setValue('done', 1);
+    $sql->update();
+}
+
+// Warteschlangen löschen
+if (rex_get('func') === 'delete')  {
+    $sql = rex_sql::factory();
+    $sql->setDebug(false);
+    $sql->setQuery('DELETE FROM ' . $table_name);
+}
+
 // Warteschlangen Infos
 
 $table_name    = rex::getTable('ff_gpt_tools_tasks');
@@ -188,7 +226,7 @@ $table_name    = rex::getTable('ff_gpt_tools_tasks');
 // fetch the fields id, done, article_id, date, meta_description, clang, prompt and error_flag from database $table_name and show it as a html table
 $sql = rex_sql::factory();
 $sql->setDebug(false);
-$sql->setQuery('SELECT id, done, article_id, date, meta_description, clang, prompt, error_flag FROM ' . $table_name . ' ORDER BY date DESC');
+$sql->setQuery('SELECT id, done, article_id, date, meta_description, clang, prompt, error_text FROM ' . $table_name . ' ORDER BY date DESC');
 
 $content = '';
 $content .= '<table class="table table-striped">';
@@ -217,36 +255,19 @@ foreach ($sql as $row) {
     $content .= '<td>' . $row->getValue('meta_description') . '</td>';
     $content .= '<td>' . $row->getValue('clang') . '</td>';
     $content .= '<td>' . $row->getValue('prompt') . '</td>';
-    $content .= '<td>' . $row->getValue('error_flag') . '</td>';
+    $content .= '<td>' . $row->getValue('error_text') . '</td>';
     // show the copy button only when meta_description isn't empty
     if ($row->getValue('meta_description') !== '') {
         $content .= '<td><a href="' . rex_url::currentBackendPage(['func' => 'copy', 'id' => $row->getValue('id')]) . '">Copy</a></td>';
+    } else {
+        $content .= '<td></td>';
     }
-
     $content .= '</tr>';
 }
 $content .= '</tbody>';
 $content .= '</table>';
 
-// copy function
-if (rex_get('func') === 'copy') {
-    $id = rex_get('id', 'int');
-    $sql->setTable($table_name);
-    $sql->setWhere('id = :id', ['id' => $id]);
-    $sql->select();
-    $article_id = $sql->getValue('article_id');
-    $meta_description = $sql->getValue('meta_description');
-    $clang = $sql->getValue('clang');
-    $description_field = $addon->getConfig('descriptionfield');
-    $sql->setTable(rex::getTable('article'));
-    $sql->setValue($description_field, $meta_description);
-    $sql->setWhere('id = :id AND clang_id = :clang', ['id' => $article_id, 'clang' => $clang]);
-    $sql->update();
-    $sql->setTable($table_name);
-    $sql->setWhere('id = :id', ['id' => $id]);
-    $sql->setValue('done', 1);
-    $sql->update();
-}
+
 
 $fragment = new rex_fragment();
 $fragment->setVar('title', 'Tasks', false);
@@ -257,35 +278,40 @@ try {
     rex_logger::logException($e);
 }
 
-// Warteschlangen löschen
-if (rex_post('delete', 'boolean')) {
-    $sql = rex_sql::factory();
-    $sql->setDebug(false);
-    $sql->setQuery('DELETE FROM ' . $table_name);
-}
-
 $content = '';
-$content .= '<form action="' . rex_url::currentBackendPage() . '" method="post">';
-$content .= '<button class="btn btn-save rex-form-aligned" type="submit" name="delete" value="' . rex_i18n::msg('ff_gpt_tools_delete') . '">' . rex_i18n::msg('ff_gpt_tools_delete') . '</button>';
-// add a button to trigger the cronjob to generate the meta descriptions
-$content .= '<button class="btn btn-save rex-form-aligned" type="submit" name="cronjob" value="' . rex_i18n::msg('ff_gpt_tools_generate_meta_descriptions') . '">' . rex_i18n::msg('ff_gpt_tools_generate_meta_descriptions') . '</button>';
-$content .= '</form>';
+
+$buttons = [];
+
+$n                        = [];
+$n['url']                 = rex_url::backendPage('ff_gpt_tools/meta_generate', ['func' => 'delete']);
+$n['label']               = rex_i18n::msg('ff_gpt_tools_delete') ;
+$n['attributes']['class'] = array('btn-primary');
+
+$buttons[] = $n;
+
+$n                        = [];
+$n['url']                 = rex_url::backendPage('ff_gpt_tools/meta_generate', ['func' => 'cronjob']);
+$n['label']               = rex_i18n::msg('ff_gpt_tools_run_tasks');
+$n['attributes']['class'] = array('btn-primary');
+
+$buttons[] = $n;
 
 $fragment = new rex_fragment();
-$fragment->setVar('title', 'Delete Tasks', false);
+$fragment->setVar('buttons', $buttons, false);
+try {
+    $content = $fragment->parse('core/buttons/button_group.php');
+} catch (rex_exception $e) {
+    rex_logger::logException($e);
+}
+
+$fragment = new rex_fragment();
+$fragment->setVar('title', 'Tools', false);
 $fragment->setVar('body', $content, false);
 try {
     echo $fragment->parse('core/page/section.php');
 } catch (rex_exception $e) {
     rex_logger::logException($e);
 }
-
-// function to trigger the cronjob by calling lib/FFGptToolsCronjob.php
-if (rex_get('func') === 'cronjob') {
-    $cronjob = new \FactFinder\FfGptTools\lib\FFGptToolsCronjob();
-    $cronjob->execute();
-}
-
 
 // Info-Box
 $content = '';

@@ -12,6 +12,9 @@ ff_gpt_tools_apikey = API Key
 ff_gpt_tools_meta_generate = Meta Description
 ff_gpt_tools_image_description = Image Description
 
+ff_gpt_tools_delete = Alle Tasks löschen
+ff_gpt_tools_run_tasks = Tasks ausführen
+
 ff_gpt_tools_generate_meta_descriptions = Meta Descriptions generieren
 ff_gpt_tools_generate_meta_descriptions_information = Information
 ff_gpt_tools_generate_meta_descriptions_intro = Mit diesem Tool können Sie Meta Descriptions für Ihre Seiten generieren lassen. Sie können die Seiten auswählen, für die Sie Meta Descriptions generieren möchten. Sie können auch die Einstellungen für die Generierung anpassen. Die generierten Meta Descriptions werden in das Feld "SEO Description" geschrieben. Wenn Sie das Feld "SEO Description" nicht sehen, müssen Sie es in den Einstellungen der Datenbanktabelle aktivieren.

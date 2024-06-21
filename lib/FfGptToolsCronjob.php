@@ -155,25 +155,28 @@ class FfGptToolsCronjob extends rex_cronjob
         $articleId = $sqlObject->getValue('article_id');
         try {
             $fullUrlByArticleId = rex_yrewrite::getFullUrlByArticleId($articleId, $clang);
-            rex_logger::logError(1, "gptTool: fullUrl " . $fullUrlByArticleId, __FILE__, __LINE__);
+            // rex_logger::logError(1, "gptTool: fullUrl " . $fullUrlByArticleId, __FILE__, __LINE__);
             $content = $gptTools->getUrlContent($fullUrlByArticleId);
             if (empty($content)) {
-                $this->logError("Error: No content to summarize for Article ID: $articleId.");
-                $this->updateErrorFlag($sqlObject, $tableName, $articleId, $clang);
+                $message = "Error: No content to summarize for Article ID: $articleId.";
+                $this->logError($message);
+                $this->updateErrorFlag($sqlObject, $tableName, $articleId, $clang, $message);
 
                 return false;
             }
         } catch (Exception $e) {
+            $message = "Error: No content to summarize for Article ID: $articleId.";
             rex_logger::logException($e);
-            $this->updateErrorFlag($sqlObject, $tableName, $articleId, $clang);
+            $this->updateErrorFlag($sqlObject, $tableName, $articleId, $clang, $message);
 
             return false;
         }
         if ($content !== '') {
             $gptTools->setPrompt($this->parsePrompt($sqlObject->getValue('prompt'), $clangName, $content));
         } else {
-            $this->logError("Error getting the content for Article: $articleId.");
-            $this->updateErrorFlag($sqlObject, $tableName, $articleId, $clang); // Mark as error to prevent reprocessing
+            $message1 = "Error getting the content for Article: $articleId.";
+            $this->logError($message1);
+            $this->updateErrorFlag($sqlObject, $tableName, $articleId, $clang, $message1); // Mark as error to prevent reprocessing
 
             return false;
         }
@@ -286,11 +289,9 @@ class FfGptToolsCronjob extends rex_cronjob
      *
      * @return void
      */
-    private function updateErrorFlag($sqlObject, $tableName, $articleId, $clang)
+    private function updateErrorFlag($sqlObject, $tableName, $articleId, $clang, $message = null): void
     {
-        $updateSql = "UPDATE $tableName SET error_flag = 1 WHERE article_id = ? AND clang = ?";
-        $sqlObject->setQuery($updateSql, [$articleId, $clang]);
+        $updateSql = "UPDATE $tableName SET error_flag = 1, error_text = ? WHERE article_id = ? AND clang = ?";
+        $sqlObject->setQuery($updateSql, [$message, $articleId, $clang]);
     }
-
-
 }
