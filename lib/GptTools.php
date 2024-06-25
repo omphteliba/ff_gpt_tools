@@ -35,8 +35,8 @@ require_once rex_path::addon($addon_name, 'vendor/autoload.php');
  * @property string $modelName
  * @property string $description_field
  * @property string $prompt
- * @property float $temperature
- * @property int $maxTokens
+ * @property float  $temperature
+ * @property int    $maxTokens
  *
  */
 class GptTools
@@ -412,9 +412,9 @@ class GptTools
     /**
      * Helper method to remove elements by id.
      *
-     * @param DOMXPath   $xpath
-     * @param DOMNode $element
-     * @param string     $id
+     * @param DOMXPath $xpath
+     * @param DOMNode  $element
+     * @param string   $id
      */
     private function removeElementById(DOMXPath $xpath, DOMNode $element, string $id): void
     {
@@ -472,19 +472,19 @@ class GptTools
                 'max_tokens'  => $this->maxTokens,
                 'temperature' => $this->temperature,
                 'messages'    => [
-                    'role' => 'user',
+                    'role'    => 'user',
                     'content' => [
                         [
                             'type' => 'text',
-                            'text' => $this->prompt
+                            'text' => $this->prompt,
                         ],
                         [
-                            'type' => 'image_url',
+                            'type'      => 'image_url',
                             'image_url' => [
-                                'url' => $this->imageUrl
-                            ]
-                        ]
-                    ]
+                                'url' => $this->imageUrl,
+                            ],
+                        ],
+                    ],
                 ],
             ]);
 
@@ -603,6 +603,24 @@ class GptTools
     {
         // Replace placeholders with actual values
         return str_replace(array('$prompt_lang', '$prompt_content'), array($lang, $content), $template);
+    }
+
+    /**
+     * Generates an image description using the OpenAI API.
+     *
+     * @param string $imageUrl The URL of the image.
+     *
+     * @return string The generated image description.
+     * @throws Exception If there is an error with the API request.
+     */
+    public function generateImageDescription(string $imageUrl): string
+    {
+        // Set the image URL
+        $this->setImageUrl($imageUrl);
+
+        // Send a request to the OpenAI API to generate the image description
+        // Return the generated image description
+        return $this->getImageDescription();
     }
 
 }

@@ -50,3 +50,4 @@ requires:
 configvars:
     apikey:
     descriptionfield:
+    image_descriptionfield:

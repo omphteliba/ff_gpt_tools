@@ -1,9 +1,16 @@
 <?php
 
+/*
+ * This is the main file for the ff_gpt_tools addon.
+ * It handles the generation of meta descriptions for articles.
+ * It uses the GPT-4 model from OpenAI to generate the descriptions.
+ */
+
 namespace FactFinder\FfGptTools\pages;
 
 use rex;
 use rex_addon;
+use rex_article;
 use rex_fragment;
 use rex_logger;
 use rex_view;
@@ -24,10 +31,9 @@ use rex_var_linklist;
 $addon_name = 'ff_gpt_tools';
 $addon      = rex_addon::get($addon_name);
 require_once rex_path::addon($addon_name, 'vendor/autoload.php');
-//require_once rex_path::base('vendor/autoload.php');
 require_once rex_path::addon($addon_name, 'lib/GptTools.php');
 
-$table_name    = rex::getTable('ff_gpt_tools_tasks');
+$table_name = rex::getTable('ff_gpt_tools_tasks');
 
 $apiKey = $addon->getConfig('apikey');
 if (empty($apiKey)) {
@@ -50,7 +56,7 @@ $generate  = rex_post('generate', 'bool');
 if ($generate && !$csrfToken->isValid()) {
     $error = rex_i18n::msg('ff_gpt_tools_csrf_token_invalid');
 } elseif ($generate) {
-    $content   .= '<strong>' . rex_i18n::msg('ff_gpt_tools_generate_meta_descriptions'). '</strong></br>' . PHP_EOL;
+    $content   .= '<strong>' . rex_i18n::msg('ff_gpt_tools_generate_meta_descriptions') . '</strong></br>' . PHP_EOL;
     $result    = [];
     $counter   = 0;
     $languages = rex_post('language', 'array');
@@ -192,15 +198,15 @@ if (rex_get('func') === 'cronjob') {
 
 // copy function
 if (rex_get('func') === 'copy') {
-    $id = rex_get('id', 'int');
+    $id  = rex_get('id', 'int');
     $sql = rex_sql::factory();
     $sql->setDebug(false);
     $sql->setTable($table_name);
     $sql->setWhere('id = :id', ['id' => $id]);
     $sql->select();
-    $article_id = $sql->getValue('article_id');
-    $meta_description = $sql->getValue('meta_description');
-    $clang = $sql->getValue('clang');
+    $article_id        = $sql->getValue('article_id');
+    $meta_description  = $sql->getValue('meta_description');
+    $clang             = $sql->getValue('clang');
     $description_field = $addon->getConfig('descriptionfield');
     $sql->setTable(rex::getTable('article'));
     $sql->setValue($description_field, $meta_description);
@@ -213,7 +219,7 @@ if (rex_get('func') === 'copy') {
 }
 
 // Warteschlangen löschen
-if (rex_get('func') === 'delete')  {
+if (rex_get('func') === 'delete') {
     $sql = rex_sql::factory();
     $sql->setDebug(false);
     $sql->setQuery('DELETE FROM ' . $table_name);
@@ -221,96 +227,98 @@ if (rex_get('func') === 'delete')  {
 
 // Warteschlangen Infos
 
-$table_name    = rex::getTable('ff_gpt_tools_tasks');
+$table_name = rex::getTable('ff_gpt_tools_tasks');
 
 // fetch the fields id, done, article_id, date, meta_description, clang, prompt and error_flag from database $table_name and show it as a html table
 $sql = rex_sql::factory();
 $sql->setDebug(false);
-$sql->setQuery('SELECT id, done, article_id, date, meta_description, clang, prompt, error_text FROM ' . $table_name . ' ORDER BY date DESC');
-
-$content = '';
-$content .= '<table class="table table-striped">';
-$content .= '<thead>';
-$content .= '<tr>';
-$content .= '<th scope="col">ID</th>';
-$content .= '<th scope="col">Done</th>';
-$content .= '<th scope="col">Article ID</th>';
-$content .= '<th scope="col">Date</th>';
-$content .= '<th scope="col">Meta Description</th>';
-$content .= '<th scope="col">Language</th>';
-$content .= '<th scope="col">Prompt</th>';
-$content .= '<th scope="col">Error</th>';
-// functions
-$content .= '<th scope="col">Functions</th>';
-$content .= '</tr>';
-$content .= '</thead>';
-$content .= '<tbody>';
-
-foreach ($sql as $row) {
+$sql->setQuery('SELECT id, done, article_id, date, meta_description, clang, prompt, error_text FROM ' . $table_name . ' WHERE article_id IS NULL OR article_id = "" ORDER BY date DESC');
+if ($sql->getRows() > 0) {
+    $content = '';
+    $content .= '<table class="table table-striped">';
+    $content .= '<thead>';
     $content .= '<tr>';
-    $content .= '<td>' . $row->getValue('id') . '</td>';
-    $content .= '<td>' . $row->getValue('done') . '</td>';
-    $content .= '<td>' . $row->getValue('article_id') . '</td>';
-    $content .= '<td>' . $row->getValue('date') . '</td>';
-    $content .= '<td>' . $row->getValue('meta_description') . '</td>';
-    $content .= '<td>' . $row->getValue('clang') . '</td>';
-    $content .= '<td>' . $row->getValue('prompt') . '</td>';
-    $content .= '<td>' . $row->getValue('error_text') . '</td>';
-    // show the copy button only when meta_description isn't empty
-    if ($row->getValue('meta_description') !== '') {
-        $content .= '<td><a href="' . rex_url::currentBackendPage(['func' => 'copy', 'id' => $row->getValue('id')]) . '">Copy</a></td>';
-    } else {
-        $content .= '<td></td>';
-    }
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_done') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_article_id') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_date') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_meta_description') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_language') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_prompt') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_error') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_functions') . '</th>';
     $content .= '</tr>';
-}
-$content .= '</tbody>';
-$content .= '</table>';
+    $content .= '</thead>';
+    $content .= '<tbody>';
 
+    foreach ($sql as $row) {
+        $content     .= '<tr>';
+        $content     .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
+        $article     = rex_article::get($row->getValue('article_id'), $row->getValue('clang'));
+        $articleName = $article->getName();
+        $articleLink = rex_url::backendPage('content/edit',
+            ['article_id' => $row->getValue('article_id'), 'clang' => $row->getValue('clang'), 'mode' => 'edit']);
+        $content     .= '<td><a href="' . $articleLink . '">' . $articleName . '</a></td>';
+        $content     .= '<td>' . $row->getValue('date') . '</td>';
+        $content     .= '<td>' . $row->getValue('meta_description') . '</td>';
+        $content     .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
+        $content     .= '<td>' . $row->getValue('prompt') . '</td>';
+        $content     .= '<td>' . $row->getValue('error_text') . '</td>';
+        // show the copy button only when meta_description isn't empty
+        if ($row->getValue('meta_description') !== '') {
+            $content .= '<td><a href="' . rex_url::currentBackendPage([
+                    'func' => 'copy',
+                    'id'   => $row->getValue('id'),
+                ]) . '">' . rex_i18n::msg('ff_gpt_tools_copy') . '</a></td>';
+        } else {
+            $content .= '<td></td>';
+        }
+        $content .= '</tr>';
+    }
+    $content .= '</tbody>';
+    $content .= '</table>';
 
+    $fragment = new rex_fragment();
+    $fragment->setVar('title', rex_i18n::msg('ff_gpt_tools_tasks'), false);
+    $fragment->setVar('body', $content, false);
+    try {
+        echo $fragment->parse('core/page/section.php');
+    } catch (rex_exception $e) {
+        rex_logger::logException($e);
+    }
 
-$fragment = new rex_fragment();
-$fragment->setVar('title', 'Tasks', false);
-$fragment->setVar('body', $content, false);
-try {
-    echo $fragment->parse('core/page/section.php');
-} catch (rex_exception $e) {
-    rex_logger::logException($e);
-}
+    $content = '';
+    $buttons = [];
 
-$content = '';
+    $n                        = [];
+    $n['url']                 = rex_url::backendPage('ff_gpt_tools/meta_generate', ['func' => 'delete']);
+    $n['label']               = rex_i18n::msg('ff_gpt_tools_delete');
+    $n['attributes']['class'] = array('btn-primary');
 
-$buttons = [];
+    $buttons[] = $n;
 
-$n                        = [];
-$n['url']                 = rex_url::backendPage('ff_gpt_tools/meta_generate', ['func' => 'delete']);
-$n['label']               = rex_i18n::msg('ff_gpt_tools_delete') ;
-$n['attributes']['class'] = array('btn-primary');
+    $n                        = [];
+    $n['url']                 = rex_url::backendPage('ff_gpt_tools/meta_generate', ['func' => 'cronjob']);
+    $n['label']               = rex_i18n::msg('ff_gpt_tools_run_tasks');
+    $n['attributes']['class'] = array('btn-primary');
 
-$buttons[] = $n;
+    $buttons[] = $n;
 
-$n                        = [];
-$n['url']                 = rex_url::backendPage('ff_gpt_tools/meta_generate', ['func' => 'cronjob']);
-$n['label']               = rex_i18n::msg('ff_gpt_tools_run_tasks');
-$n['attributes']['class'] = array('btn-primary');
+    $fragment = new rex_fragment();
+    $fragment->setVar('buttons', $buttons, false);
+    try {
+        $content = $fragment->parse('core/buttons/button_group.php');
+    } catch (rex_exception $e) {
+        rex_logger::logException($e);
+    }
 
-$buttons[] = $n;
-
-$fragment = new rex_fragment();
-$fragment->setVar('buttons', $buttons, false);
-try {
-    $content = $fragment->parse('core/buttons/button_group.php');
-} catch (rex_exception $e) {
-    rex_logger::logException($e);
-}
-
-$fragment = new rex_fragment();
-$fragment->setVar('title', 'Tools', false);
-$fragment->setVar('body', $content, false);
-try {
-    echo $fragment->parse('core/page/section.php');
-} catch (rex_exception $e) {
-    rex_logger::logException($e);
+    $fragment = new rex_fragment();
+    $fragment->setVar('title', 'Tools', false);
+    $fragment->setVar('body', $content, false);
+    try {
+        echo $fragment->parse('core/page/section.php');
+    } catch (rex_exception $e) {
+        rex_logger::logException($e);
+    }
 }
 
 // Info-Box
@@ -434,12 +442,12 @@ $formElements[] = $n;
 
 $n              = [];
 $n['label']     = '<label for="rex-form-select_empty">' . rex_i18n::msg('ff_gpt_tools_generate_meta_descriptions_pages_select_empty') . '</label>';
-$n['field']     = '<input type="radio" id="rex-form-select_empty" name="func" value="1" checked="checked" />';
+$n['field']     = '<input type="radio" id="rex-form-select_empty" name="func" value="1" />';
 $formElements[] = $n;
 
 $n              = [];
 $n['label']     = '<label for="rex-form-pages_select_one">' . rex_i18n::msg('ff_gpt_tools_generate_meta_descriptions_pages_select_one') . '</label>';
-$n['field']     = '<input type="radio" id="rex-form-pages_select_one" name="func" value="2" />';
+$n['field']     = '<input type="radio" id="rex-form-pages_select_one" name="func" value="2" checked="checked" />';
 $formElements[] = $n;
 
 $n              = [];

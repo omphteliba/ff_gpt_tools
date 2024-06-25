@@ -52,6 +52,10 @@ $field = $form->addInputField('text', 'descriptionfield', $addon->getConfig('des
     ['class' => 'form-control']);
 $field->setLabel(rex_i18n::msg('ff_gpt_tools_descriptionfield'));
 
+$field = $form->addInputField('text', 'image_descriptionfield', $addon->getConfig('image_descriptionfield'),
+    ['class' => 'form-control']);
+$field->setLabel(rex_i18n::msg('ff_gpt_tools_image_descriptionfield'));
+
 // Ausgabe des Formulars
 $fragment = new rex_fragment();
 $fragment->setVar('class', 'edit', false);

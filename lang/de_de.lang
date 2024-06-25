@@ -1,23 +1,36 @@
 ff_gpt_tools_navititle = GPT Tools
 ff_gpt_tools_title = FF GPT Tools
 
-ff_gpt_tools_config = Configuration
+ff_gpt_tools_config = Einstellungen
 ff_gpt_tools_api = API
 ff_gpt_tools_descriptionfield = DB Feld für SEO Description (REDAXO)
+ff_gpt_tools_image_descriptionfield = DB Feld für Image Description (REDAXO)
 
 ff_gpt_tools_config_legend1 = Erstelle deinen API Key auf der OpenAI Seite https://platform.openai.com/account/api-keys
 ff_gpt_tools_config_title_rex_config = REX Config
 ff_gpt_tools_apikey = API Key
 
-ff_gpt_tools_meta_generate = Meta Description
-ff_gpt_tools_image_description = Image Description
+ff_gpt_tools_meta_generate = Meta Beschreibung
+ff_gpt_tools_image_description = Bild Beschreibung
 
-ff_gpt_tools_delete = Alle Tasks löschen
+ff_gpt_tools_tasks = Aufgaben
+
+ff_gpt_tools_done = Erledigt?
+ff_gpt_tools_article_id = Artikel
+ff_gpt_tools_date = Datum
+ff_gpt_tools_meta_description = Meta Description
+ff_gpt_tools_language = Sprache
+ff_gpt_tools_prompt = Prompt
+ff_gpt_tools_error = Fehler
+ff_gpt_tools_functions = Funktionen
+ff_gpt_tools_copy = Kopieren
+
+ff_gpt_tools_delete = Alle Aufgaben löschen
 ff_gpt_tools_run_tasks = Tasks ausführen
 
 ff_gpt_tools_generate_meta_descriptions = Meta Descriptions generieren
 ff_gpt_tools_generate_meta_descriptions_information = Information
-ff_gpt_tools_generate_meta_descriptions_intro = Mit diesem Tool können Sie Meta Descriptions für Ihre Seiten generieren lassen. Sie können die Seiten auswählen, für die Sie Meta Descriptions generieren möchten. Sie können auch die Einstellungen für die Generierung anpassen. Die generierten Meta Descriptions werden in das Feld "SEO Description" geschrieben. Wenn Sie das Feld "SEO Description" nicht sehen, müssen Sie es in den Einstellungen der Datenbanktabelle aktivieren.
+ff_gpt_tools_generate_meta_descriptions_intro = Mit diesem Tool können Sie Meta Descriptions für Ihre Seiten generieren lassen. Sie können die Seiten auswählen, für die Sie Meta Descriptions generieren möchten. Sie können auch die Einstellungen für die Generierung anpassen. Die generierten Meta Descriptions werden zur Ansicht und Korrektur in die Aufgaben Tabelle geschrieben. Mit "Kopieren" wird diese in das Feld "SEO Description" geschrieben. Wenn Sie das Feld "SEO Description" nicht sehen, müssen Sie es in den Einstellungen der Datenbanktabelle aktivieren.
 ff_gpt_tools_generate_meta_descriptions_config_legend = Einstellungen für die Meta Description Generierung
 ff_gpt_tools_generate_meta_descriptions_prompt = Prompt
 ff_gpt_tools_generate_meta_descriptions_prompt_note = Der Prompt, der dem Modell hilft, die Meta Description zu generieren. Sie können die folgenden Platzhalter verwenden: <b>$prompt_lang</b> wird durch die Sprache des Artikels ersetzt, <b>$prompt_content</b> wird durch den Inhalt des Artikels ersetzt.
@@ -56,3 +69,27 @@ generate_meta_descriptions_queue_temp = Temperatur
 generate_meta_descriptions_queue_max_tokens = Tokens
 generate_meta_descriptions_queue_meta_description = Meta Description
 generate_meta_descriptions_queue_prompt = Prompt
+
+
+ff_gpt_tools_generate_image_descriptions_information = Information
+ff_gpt_tools_generate_image_descriptions_intro = Mit diesem Tool können Sie Bildbeschreibungen für Ihre Bilder generieren lassen. Sie können die Bilder auswählen, für die Sie Bildbeschreibungen generieren möchten. Sie können auch die Einstellungen für die Generierung anpassen. Die generierten Bildbeschreibungen werden zur Ansicht und Korrektur in die Aufgaben Tabelle geschrieben. Mit "Kopieren" wird diese in das Feld "SEO Description" geschrieben. Wenn Sie das Feld "SEO Description" nicht sehen, müssen Sie es in den Einstellungen der Datenbanktabelle aktivieren.
+ff_gpt_tools_generate_image_descriptions_config_legend = Einstellungen für die Bildbeschreibung Generierung
+ff_gpt_tools_generate_image_descriptions_prompt = Prompt
+ff_gpt_tools_generate_image_descriptions_prompt_note = Der Prompt, der dem Modell hilft, die Bildbeschreibung zu generieren. Sie können die folgenden Platzhalter verwenden: <b>$prompt_lang</b> wird durch die Sprache des Artikels ersetzt, <b>$prompt_content</b> wird durch den Inhalt des Artikels ersetzt.
+ff_gpt_tools_generate_image_descriptions_model_name = Model Name
+ff_gpt_tools_generate_image_descriptions_temperature = Temperatur
+ff_gpt_tools_generate_image_descriptions_temperature_note = Zwischen 0 und 1. Höhere Werte bedeuten, dass das Modell mehr Risiken eingehen wird. Empfohlener Wert: 0.7
+ff_gpt_tools_generate_image_descriptions_max_tokens = Tokens
+ff_gpt_tools_generate_image_descriptions_max_tokens_note = Die maximale Anzahl der zu erzeugenden Token. Das Modell hört auf zu generieren, sobald es dieses Limit erreicht. Empfohlener Wert: 50
+
+ff_gpt_tools_generate_image_descriptions_pages_legend = Bilder auswählen
+ff_gpt_tools_generate_image_descriptions_pages_select_note = Ausser "Bilder ohne Bildbeschreibung" überschreiben alle anderen Optionen die bestehenden Bildbeschreibungen.
+
+ff_gpt_tools_generate_image_descriptions_submit_button = In Warteschlage einstellen
+ff_gpt_tools_generate_image_descriptions_languages = Sprachen
+ff_gpt_tools_generate_image_descriptions_pages_select_all = Alle Bilder
+ff_gpt_tools_generate_image_descriptions_pages_select_empty = Bilder ohne Bildbeschreibung
+ff_gpt_tools_generate_image_descriptions_pages_select_one = Ein Bild
+ff_gpt_tools_generate_image_descriptions_pages_select_list = Mehrere Bilder
+ff_gpt_tools_generate_image_descriptions_pages_article = Bild
+ff_gpt_tools_generate_image_descriptions_pages_articlelist = Bild Liste
