@@ -93,3 +93,5 @@ ff_gpt_tools_generate_image_descriptions_pages_select_one = Ein Bild
 ff_gpt_tools_generate_image_descriptions_pages_select_list = Mehrere Bilder
 ff_gpt_tools_generate_image_descriptions_pages_article = Bild
 ff_gpt_tools_generate_image_descriptions_pages_articlelist = Bild Liste
+
+ff_gpt_tools_image_url = Bild URL

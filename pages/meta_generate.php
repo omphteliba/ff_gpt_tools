@@ -222,7 +222,7 @@ if (rex_get('func') === 'copy') {
 if (rex_get('func') === 'delete') {
     $sql = rex_sql::factory();
     $sql->setDebug(false);
-    $sql->setQuery('DELETE FROM ' . $table_name);
+    $sql->setQuery('DELETE FROM ' . $table_name . ' WHERE article_id <> ""');
 }
 
 // Warteschlangen Infos
@@ -232,7 +232,8 @@ $table_name = rex::getTable('ff_gpt_tools_tasks');
 // fetch the fields id, done, article_id, date, meta_description, clang, prompt and error_flag from database $table_name and show it as a html table
 $sql = rex_sql::factory();
 $sql->setDebug(false);
-$sql->setQuery('SELECT id, done, article_id, date, meta_description, clang, prompt, error_text FROM ' . $table_name . ' WHERE article_id IS NULL OR article_id = "" ORDER BY date DESC');
+$sql->setQuery('SELECT id, done, article_id, date, meta_description, clang, prompt, error_text FROM ' . $table_name . ' WHERE article_id <> "" ORDER BY date DESC');
+
 if ($sql->getRows() > 0) {
     $content = '';
     $content .= '<table class="table table-striped">';

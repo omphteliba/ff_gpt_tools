@@ -28,6 +28,7 @@ use rex_select;
 use rex_var_media;
 use rex_var_medialist;
 use rex_media;
+use rex_media_manager;
 
 $addon_name = 'ff_gpt_tools';
 $addon      = rex_addon::get($addon_name);
@@ -225,7 +226,7 @@ if (rex_get('func') === 'copy') {
 if (rex_get('func') === 'delete') {
     $sql = rex_sql::factory();
     $sql->setDebug(false);
-    $sql->setQuery('DELETE FROM ' . $table_name);
+    $sql->setQuery('DELETE FROM ' . $table_name . ' WHERE article_id = ""');
 }
 
 // Warteschlangen Infos
@@ -235,14 +236,14 @@ $table_name = rex::getTable('ff_gpt_tools_tasks');
 // fetch the fields id, done, article_id, date, image_description, clang, prompt and error_flag from database $table_name and show it as a html table
 $sql = rex_sql::factory();
 $sql->setDebug(false);
-$sql->setQuery('SELECT id, done, article_id, date, meta_description, clang, prompt, error_text FROM ' . $table_name . ' ORDER BY date DESC');
+$sql->setQuery('SELECT id, done, image_url, date, meta_description, clang, prompt, error_text FROM ' . $table_name . ' WHERE article_id IS NULL OR article_id = "" ORDER BY date DESC');
 if ($sql->getRows() > 0) {
     $content = '';
     $content .= '<table class="table table-striped">';
     $content .= '<thead>';
     $content .= '<tr>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_done') . '</th>';
-    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_article_id') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_image_url') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_date') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_image_description') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_language') . '</th>';
@@ -254,18 +255,14 @@ if ($sql->getRows() > 0) {
     $content .= '<tbody>';
 
     foreach ($sql as $row) {
-        $content     .= '<tr>';
-        $content     .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
-        $article     = rex_article::get($row->getValue('article_id'), $row->getValue('clang'));
-        $articleName = $article->getName();
-        $articleLink = rex_url::backendPage('content/edit',
-            ['article_id' => $row->getValue('article_id'), 'clang' => $row->getValue('clang'), 'mode' => 'edit']);
-        $content     .= '<td><a href="' . $articleLink . '">' . $articleName . '</a></td>';
-        $content     .= '<td>' . $row->getValue('date') . '</td>';
-        $content     .= '<td>' . $row->getValue('meta_description') . '</td>';
-        $content     .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
-        $content     .= '<td>' . $row->getValue('prompt') . '</td>';
-        $content     .= '<td>' . $row->getValue('error_text') . '</td>';
+        $content        .= '<tr>';
+        $content        .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
+        $content        .= '<td><img src="' . $row->getValue('image_url') . '" width="100px" alt="Image"></td>';
+        $content        .= '<td>' . $row->getValue('date') . '</td>';
+        $content        .= '<td>' . $row->getValue('meta_description') . '</td>';
+        $content        .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
+        $content        .= '<td>' . $row->getValue('prompt') . '</td>';
+        $content        .= '<td>' . $row->getValue('error_text') . '</td>';
         // show the copy button only when image_description isn't empty
         if ($row->getValue('meta_description') !== '') {
             $content .= '<td><a href="' . rex_url::currentBackendPage([

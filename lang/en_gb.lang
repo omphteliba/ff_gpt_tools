@@ -68,3 +68,5 @@ generate_meta_descriptions_queue_temp = Temperatur
 generate_meta_descriptions_queue_max_tokens = Tokens
 generate_meta_descriptions_queue_meta_description = Meta Description
 generate_meta_descriptions_queue_prompt = Prompt
+
+ff_gpt_tools_image_url = Image URL
