@@ -234,7 +234,6 @@ class GptTools
     }
 
 
-
     /**
      * Constructor
      *
@@ -256,7 +255,7 @@ class GptTools
             throw new \InvalidArgumentException("API key must be configured and cannot be empty.");
         }
 
-        $this->description_field = rex_addon::get($this->addon_name)->getConfig('descriptionfield');
+        $this->description_field       = rex_addon::get($this->addon_name)->getConfig('descriptionfield');
         $this->image_description_field = rex_addon::get($this->addon_name)->getConfig('image_descriptionfield');
 
         if (empty($this->description_field)) {
@@ -507,33 +506,39 @@ class GptTools
         }
     }
 
-
+    /**
+     * Returns the image description
+     *
+     * @return string
+     *
+     * @throws rex_exception
+     */
     public function getImageDescription(): string
     {
         try {
             $client = OpenAI::client($this->apiKey);
 
-            rex_logger::logError(1, 'OpenAI API Error: ' . $this->imageUrl, __FILE__, __LINE__);
+            // Debug Step 1: Log the imageUrl
+            rex_logger::logError(1, 'Image URL: ' . $this->imageUrl, __FILE__, __LINE__);
+
             $response = $client->chat()->create([
                 'model'       => $this->modelName,
                 'max_tokens'  => $this->maxTokens,
                 'temperature' => $this->temperature,
                 'messages'    => [
-                    'role'    => 'user',
-                    'content' => [
-                        [
-                            'type' => 'text',
-                            'text' => $this->prompt,
-                        ],
-                        [
-                            'type'      => 'image_url',
-                            'image_url' => [
-                                'url' => $this->imageUrl,
-                            ],
-                        ],
+                    [
+                        'role'    => 'user',
+                        'content' => $this->prompt,
+                    ],
+                    [
+                        'role'    => 'system',
+                        'content' => 'The image URL is ' . $this->imageUrl,
                     ],
                 ],
             ]);
+
+            // Debug Step 4: Log the entire API response
+            rex_logger::logError(1, 'OpenAI API Response: ' . print_r($response, true), __FILE__, __LINE__);
 
             // Check for errors in the API response here, if any
             if (isset($response['error'])) {

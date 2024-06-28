@@ -258,7 +258,7 @@ class FfGptToolsCronjob extends rex_cronjob
         $this->logError($gptTools->getPrompt());
         $gptTools->setTemperature($sqlObject->getValue('temp'));
         $gptTools->setMaxTokens($sqlObject->getValue('max_token'));
-        $metaDescription = $this->removeHtmlEntities($gptTools->getMetaDescription());
+        $metaDescription = $this->removeHtmlEntities($gptTools->getImageDescription());
 
         if ($gptTools->updateRedaxoImageDescription($metaDescription, $sqlObject->getValue('image_url'))) {
             $this->updateDatabaseEntry($sqlObject, $tableName, $metaDescription);
