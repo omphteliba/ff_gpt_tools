@@ -70,3 +70,4 @@ generate_meta_descriptions_queue_meta_description = Meta Description
 generate_meta_descriptions_queue_prompt = Prompt
 
 ff_gpt_tools_image_url = Image URL
+ff_gpt_tools_generate_image_descriptions = Generate image descriptions

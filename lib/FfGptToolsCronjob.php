@@ -13,6 +13,7 @@ use rex_logger;
 use rex_path;
 use rex_exception;
 use rex_i18n;
+use rex_url;
 
 $addon_name = 'ff_gpt_tools';
 require_once rex_path::addon($addon_name, 'vendor/autoload.php');
@@ -91,12 +92,23 @@ class FfGptToolsCronjob extends rex_cronjob
         $message = "Cronjob executed. " . PHP_EOL;
 
         try {
-            $processedEntries = $this->processEntries();
-            $message          .= "{$processedEntries['success']} entries processed successfully." . PHP_EOL;
-            $message          .= "{$processedEntries['failure']} entries failed." . PHP_EOL;
+            // Meta Description processing
+            $processedMetaEntries = $this->processMetaEntries();
+
+            $message .= "{$processedMetaEntries['success']} Meta Description entries processed successfully." . PHP_EOL;
+            $message .= "{$processedMetaEntries['failure']} Meta Description entries failed." . PHP_EOL;
+
+            // Image Description processing
+            $processedImageEntries = $this->processImageEntries();
+
+            $message .= "{$processedImageEntries['success']} Image Description entries processed successfully." . PHP_EOL;
+            $message .= "{$processedImageEntries['failure']} Image Description entries failed." . PHP_EOL;
 
             // Include additional details if needed
-            foreach ($processedEntries['messages'] as $msg) {
+            foreach ($processedMetaEntries['messages'] as $msg) {
+                $message .= $msg . PHP_EOL;
+            }
+            foreach ($processedImageEntries['messages'] as $msg) {
                 $message .= $msg . PHP_EOL;
             }
 
@@ -120,10 +132,11 @@ class FfGptToolsCronjob extends rex_cronjob
      * @throws \rex_exception
      * @throws \rex_sql_exception
      */
-    private function processEntries(): array
+    private function processMetaEntries(): array
     {
+        rex_logger::logError(1, "gptTool: processMetaEntries", __FILE__, __LINE__);
         $tableName = rex::getTablePrefix() . $this->ffgptdatabase;
-        $sql       = "SELECT * FROM $tableName WHERE done = 0 AND (error_flag = 0 OR error_flag IS NULL) ORDER BY date LIMIT " . $this->maxEntriesProcessed;
+        $sql       = "SELECT * FROM $tableName WHERE article_id <> '' AND done = 0 AND (error_flag = 0 OR error_flag IS NULL) ORDER BY date LIMIT " . $this->maxEntriesProcessed;
 
         $sqlObject = rex_sql::factory();
         $sqlObject->setQuery($sql);
@@ -132,7 +145,7 @@ class FfGptToolsCronjob extends rex_cronjob
         $result   = ['success' => 0, 'failure' => 0, 'messages' => []];
 
         while ($sqlObject->hasNext()) {
-            $success = $this->processSingleEntry($sqlObject, $gptTools, $tableName);
+            $success = $this->processSingleMetaEntry($sqlObject, $gptTools, $tableName);
             if ($success) {
                 $result['success']++;
             } else {
@@ -147,7 +160,7 @@ class FfGptToolsCronjob extends rex_cronjob
     /**
      * @throws \rex_exception
      */
-    private function processSingleEntry($sqlObject, $gptTools, $tableName): bool
+    private function processSingleMetaEntry($sqlObject, $gptTools, $tableName): bool
     {
         $gptTools->setModelName($sqlObject->getValue('model'));
         $clang     = $sqlObject->getValue('clang');
@@ -176,7 +189,8 @@ class FfGptToolsCronjob extends rex_cronjob
         } else {
             $message1 = "Error getting the content for Article: $articleId.";
             $this->logError($message1);
-            $this->updateErrorFlag($sqlObject, $tableName, $articleId, $clang, $message1); // Mark as error to prevent reprocessing
+            $this->updateErrorFlag($sqlObject, $tableName, $articleId, $clang,
+                $message1); // Mark as error to prevent reprocessing
 
             return false;
         }
@@ -186,7 +200,6 @@ class FfGptToolsCronjob extends rex_cronjob
         $metaDescription = $this->removeHtmlEntities($gptTools->getMetaDescription());
 
         if ($gptTools->updateRedaxoMetaDescription($metaDescription, $articleId, $clang)) {
-
             $this->updateDatabaseEntry($sqlObject, $tableName, $metaDescription);
 
             return true;
@@ -196,6 +209,68 @@ class FfGptToolsCronjob extends rex_cronjob
 
         return false;
     }
+
+    function processImageEntries(): array
+    {
+        rex_logger::logError(1, "gptTool: processImageEntries", __FILE__, __LINE__);
+        $tableName = rex::getTablePrefix() . $this->ffgptdatabase;
+        $sql       = "SELECT * FROM $tableName WHERE article_id = '' AND done = 0 AND (error_flag = 0 OR error_flag IS NULL) ORDER BY date LIMIT " . $this->maxEntriesProcessed;
+
+        $sqlObject = rex_sql::factory();
+        $sqlObject->setQuery($sql);
+
+        $gptTools = new GptTools('ff_gpt_tools');
+        $result   = ['success' => 0, 'failure' => 0, 'messages' => []];
+
+        while ($sqlObject->hasNext()) {
+            $success = $this->processSingleImageEntry($sqlObject, $gptTools, $tableName);
+            if ($success) {
+                $result['success']++;
+            } else {
+                $result['failure']++;
+            }
+            $sqlObject->next();
+        }
+
+        return $result;
+    }
+
+    function processSingleImageEntry($sqlObject, $gptTools, $tableName): bool
+    {
+        $gptTools->setModelName($sqlObject->getValue('model'));
+        $clang     = $sqlObject->getValue('clang');
+        $clangName = rex_clang::get($clang)?->getName();
+        $image = $sqlObject->getValue('image_url');
+        $image = rex::getServer() . substr($image, 2);
+
+        // check if the file $image exists
+        if ($this->urlExists($image)) {
+            $gptTools->setPrompt($this->parsePrompt($sqlObject->getValue('prompt'), $clangName, ''));
+            $gptTools->setImageUrl($image);
+        } else {
+            $message1 = "Error getting the image: $image.";
+            $this->logError($message1);
+            $this->updateErrorFlag($sqlObject, $tableName, $sqlObject->getValue('image_url'), $clang,
+                $message1); // Mark as error to prevent reprocessing
+
+            return false;
+        }
+        $this->logError($gptTools->getPrompt());
+        $gptTools->setTemperature($sqlObject->getValue('temp'));
+        $gptTools->setMaxTokens($sqlObject->getValue('max_token'));
+        $metaDescription = $this->removeHtmlEntities($gptTools->getMetaDescription());
+
+        if ($gptTools->updateRedaxoImageDescription($metaDescription, $sqlObject->getValue('image_url'))) {
+            $this->updateDatabaseEntry($sqlObject, $tableName, $metaDescription);
+
+            return true;
+        }
+
+        $this->logError("Error updating the meta description for Image: $sqlObject->getValue('image_url').");
+
+        return false;
+    }
+
 
     /**
      * @param $sqlObject
@@ -260,7 +335,7 @@ class FfGptToolsCronjob extends rex_cronjob
      *
      * @return array|string|string[]
      */
-    public function parsePrompt(string $template, string $lang, string $content): array|string
+    public function parsePrompt(string $template, string $lang, string $content =''): array|string
     {
         // Replace placeholders with actual values
         return str_replace(array('$prompt_lang', '$prompt_content'), array($lang, $content), $template);
@@ -293,5 +368,18 @@ class FfGptToolsCronjob extends rex_cronjob
     {
         $updateSql = "UPDATE $tableName SET error_flag = 1, error_text = ? WHERE article_id = ? AND clang = ?";
         $sqlObject->setQuery($updateSql, [$message, $articleId, $clang]);
+    }
+
+    // private method that checks if an url exists
+    /**
+     * @param $url
+     *
+     * @return bool
+     */
+    private function urlExists($url): bool
+    {
+        $file_headers = @get_headers($url);
+
+        return $file_headers[0] !== 'HTTP/1.1 404 Not Found';
     }
 }

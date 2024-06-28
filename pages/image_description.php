@@ -98,7 +98,7 @@ if ($generate && !$csrfToken->isValid()) {
             $articles = rex_sql::factory();
             $articles->setDebug(false);
             $description_field = $addon->getConfig('image_descriptionfield');
-            $query             = 'SELECT id, filename FROM ' . rex::getTable('article') . ' WHERE ' . $description_field . ' = "" ';
+            $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE ' . $description_field . ' = "" ';
 
             try {
                 $articles->setQuery($query);
@@ -109,7 +109,6 @@ if ($generate && !$csrfToken->isValid()) {
                 foreach ($articles as $article) {
                     //$content  .= 'Article ID: ' . $article->getValue('id') . ' Clang ID: ' . $article->getValue('clang_id') . '<br>' . PHP_EOL;
                     $result[] = array(
-                        'img_id'    => $article->getValue('id'),
                         'image_url' => rex_url::media($article->getValue('filename')),
                         'clang'     => $language,
                         'prompt'    => rex_post('prompt', 'string'),
@@ -208,13 +207,16 @@ if (rex_get('func') === 'copy') {
     $sql->setTable($table_name);
     $sql->setWhere('id = :id', ['id' => $id]);
     $sql->select();
-    $article_id        = $sql->getValue('article_id');
-    $meta_description  = $sql->getValue('meta_description');
-    $clang             = $sql->getValue('clang');
-    $description_field = $addon->getConfig('descriptionfield');
-    $sql->setTable(rex::getTable('article'));
+    $mediaFolderPath     = rex_url::media(); // Get the path to the media folder
+    rex_logger::logError(1, $mediaFolderPath, __FILE__, __LINE__);
+    $filename            = $sql->getValue('image_url'); // Get the filename with the media folder path
+    $filenameWithoutPath = str_replace($mediaFolderPath, '', $filename); // Remove the media folder path from the filename
+    rex_logger::logError(1, $filenameWithoutPath, __FILE__, __LINE__);
+    $meta_description    = $sql->getValue('meta_description');
+    $description_field   = $addon->getConfig('image_descriptionfield');
+    $sql->setTable(rex::getTable('media'));
     $sql->setValue($description_field, $meta_description);
-    $sql->setWhere('id = :id AND clang_id = :clang', ['id' => $article_id, 'clang' => $clang]);
+    $sql->setWhere('filename = :filename', ['filename' => $filenameWithoutPath]);
     $sql->update();
     $sql->setTable($table_name);
     $sql->setWhere('id = :id', ['id' => $id]);
@@ -255,14 +257,14 @@ if ($sql->getRows() > 0) {
     $content .= '<tbody>';
 
     foreach ($sql as $row) {
-        $content        .= '<tr>';
-        $content        .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
-        $content        .= '<td><img src="' . $row->getValue('image_url') . '" width="100px" alt="Image"></td>';
-        $content        .= '<td>' . $row->getValue('date') . '</td>';
-        $content        .= '<td>' . $row->getValue('meta_description') . '</td>';
-        $content        .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
-        $content        .= '<td>' . $row->getValue('prompt') . '</td>';
-        $content        .= '<td>' . $row->getValue('error_text') . '</td>';
+        $content .= '<tr>';
+        $content .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
+        $content .= '<td><img src="' . $row->getValue('image_url') . '" width="100px" alt="Image"></td>';
+        $content .= '<td>' . $row->getValue('date') . '</td>';
+        $content .= '<td>' . $row->getValue('meta_description') . '</td>';
+        $content .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
+        $content .= '<td>' . $row->getValue('prompt') . '</td>';
+        $content .= '<td>' . $row->getValue('error_text') . '</td>';
         // show the copy button only when image_description isn't empty
         if ($row->getValue('meta_description') !== '') {
             $content .= '<td><a href="' . rex_url::currentBackendPage([
@@ -442,12 +444,12 @@ $formElements[] = $n;
 
 $n              = [];
 $n['label']     = '<label for="rex-form-select_empty">' . rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_select_empty') . '</label>';
-$n['field']     = '<input type="radio" id="rex-form-select_empty" name="func" value="1" checked="checked" />';
+$n['field']     = '<input type="radio" id="rex-form-select_empty" name="func" value="1" />';
 $formElements[] = $n;
 
 $n              = [];
 $n['label']     = '<label for="rex-form-pages_select_one">' . rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_select_one') . '</label>';
-$n['field']     = '<input type="radio" id="rex-form-pages_select_one" name="func" value="2" />';
+$n['field']     = '<input type="radio" id="rex-form-pages_select_one" name="func" value="2" checked="checked" />';
 $formElements[] = $n;
 
 $n              = [];

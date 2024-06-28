@@ -70,7 +70,7 @@ generate_meta_descriptions_queue_max_tokens = Tokens
 generate_meta_descriptions_queue_meta_description = Meta Description
 generate_meta_descriptions_queue_prompt = Prompt
 
-
+ff_gpt_tools_generate_image_descriptions = Bildbeschreibungen generieren
 ff_gpt_tools_generate_image_descriptions_information = Information
 ff_gpt_tools_generate_image_descriptions_intro = Mit diesem Tool können Sie Bildbeschreibungen für Ihre Bilder generieren lassen. Sie können die Bilder auswählen, für die Sie Bildbeschreibungen generieren möchten. Sie können auch die Einstellungen für die Generierung anpassen. Die generierten Bildbeschreibungen werden zur Ansicht und Korrektur in die Aufgaben Tabelle geschrieben. Mit "Kopieren" wird diese in das Feld "SEO Description" geschrieben. Wenn Sie das Feld "SEO Description" nicht sehen, müssen Sie es in den Einstellungen der Datenbanktabelle aktivieren.
 ff_gpt_tools_generate_image_descriptions_config_legend = Einstellungen für die Bildbeschreibung Generierung

@@ -34,6 +34,7 @@ require_once rex_path::addon($addon_name, 'vendor/autoload.php');
  * @property string $apiKey
  * @property string $modelName
  * @property string $description_field
+ * @property string $image_description_field
  * @property string $prompt
  * @property float  $temperature
  * @property int    $maxTokens
@@ -58,6 +59,11 @@ class GptTools
      * @var string
      */
     private string $description_field;
+
+    /**
+     * @var string
+     */
+    private string $image_description_field;
 
     /**
      * @var string
@@ -217,6 +223,18 @@ class GptTools
         $this->description_field = $description_field;
     }
 
+    public function getImageDescriptionField(): string
+    {
+        return $this->image_description_field;
+    }
+
+    public function setImageDescriptionField(string $image_description_field): void
+    {
+        $this->image_description_field = $image_description_field;
+    }
+
+
+
     /**
      * Constructor
      *
@@ -239,6 +257,7 @@ class GptTools
         }
 
         $this->description_field = rex_addon::get($this->addon_name)->getConfig('descriptionfield');
+        $this->image_description_field = rex_addon::get($this->addon_name)->getConfig('image_descriptionfield');
 
         if (empty($this->description_field)) {
             throw new \InvalidArgumentException("description_field must be configured and cannot be empty.");
@@ -277,6 +296,33 @@ class GptTools
         SET ' . $this->description_field . ' = "' . $metaDescription . '"
         WHERE id = "' . $articleId . '"
         AND clang_id = "' . $clang . '"';
+
+        try {
+            $article->setQuery($query);
+        } catch (rex_sql_exception $e) {
+            rex_logger::logException($e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $metaDescription
+     * @param string $image
+     *
+     * @return bool
+     */
+    public function updateRedaxoImageDescription(string $metaDescription, string $image): bool
+    {
+        // SQL query to update meta description in Redaxo
+        // Execute and return status
+        $article = rex_sql::factory();
+        $article->setDebug(false);
+        $query = 'UPDATE ' . rex::getTable('media') . '
+        SET ' . $this->image_description_field . ' = "' . $metaDescription . '"
+        WHERE filename = "' . $image . '"';
 
         try {
             $article->setQuery($query);
@@ -467,6 +513,7 @@ class GptTools
         try {
             $client = OpenAI::client($this->apiKey);
 
+            rex_logger::logError(1, 'OpenAI API Error: ' . $this->imageUrl, __FILE__, __LINE__);
             $response = $client->chat()->create([
                 'model'       => $this->modelName,
                 'max_tokens'  => $this->maxTokens,
