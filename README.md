@@ -13,12 +13,20 @@ This REDAXO addon integrates the power of OpenAI's GPT language models (like GPT
     - All articles.
     - Articles missing meta descriptions.
     - Specific articles.
+- **Image Description Generation:** Generate descriptive ALT tags for images automatically using OpenAI's GPT language models. This feature ensures that image descriptions are clear, concise, and accurately represent the content and context of the image, improving accessibility and SEO performance.
+    - **Prompt Customization:** Tailor the prompts to fit your specific needs and include relevant keywords without compromising clarity.
+    - **Multilingual Support:** Generate image descriptions in multiple languages.
+    - **Fine-tuning Options:** Adjust parameters such as model name, temperature, and token limits to fine-tune the results.
+    - **Flexible Options:** Choose to generate descriptions for:
+        - All images.
+        - Images missing descriptions.
+        - Specific images.
 
 **Benefits:**
 
 - **Save Time and Effort:** Automate the often tedious task of writing unique and compelling meta descriptions.
-- **Improve SEO Performance:**  Optimize your website's search engine visibility with well-crafted meta descriptions that attract clicks.
-- **Enhance Content Quality:**  Leverage the language generation capabilities of GPT to create high-quality content that engages your users.
+- **Improve SEO Performance:** Optimize your website's search engine visibility with well-crafted meta descriptions that attract clicks.
+- **Enhance Content Quality:** Leverage the language generation capabilities of GPT to create high-quality content that engages your users.
 
 **Installation:**
 
@@ -39,15 +47,16 @@ This REDAXO addon integrates the power of OpenAI's GPT language models (like GPT
 
 **To Do:**
 
-- At the moment the AI generated meta description are saved in the task table. I changed it from directly writing the result from OpenAI to the article, because there where too many false answers. I will implement a review function to check the generated meta descriptions before saving them to the article.
-- The generation of the image descriptions isn't working yet.
+- Currently, the AI-generated meta descriptions are saved in the task table. This change was made to avoid incorrect answers being written directly to the article. A review function will be implemented to check the generated meta descriptions before saving them to the article.
 
 **Support:**
 
-For support or to report issues, please visit https://github.com/omphteliba/ff_gpt_tools/.
+For support or to report issues, please visit [https://github.com/omphteliba/ff_gpt_tools/](https://github.com/omphteliba/ff_gpt_tools/).
 
 **Contributing:**
 
-Contributions are welcome! Feel free to submit pull requests or open issues on the https://github.com/omphteliba/ff_gpt_tools/.
+Contributions are welcome! Feel free to submit pull requests or open issues on the [https://github.com/omphteliba/ff_gpt_tools/](https://github.com/omphteliba/ff_gpt_tools/).
 
-
+🔍 Is there any other feature you would like to add?
+🔭 How would you like to enhance the image description feature in the future?
+🎯 What other aspects of the addon would you like to improve or focus on next?
