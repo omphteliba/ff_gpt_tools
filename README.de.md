@@ -5,7 +5,7 @@ Dieses REDAXO AddOn integriert die Leistungsfähigkeit der GPT-Sprachmodelle von
 **Funktionen:**
 
 - **Automatische Generierung von Meta-Beschreibungen:** Erstellen Sie automatisch optimierte Meta-Beschreibungen für Ihre REDAXO-Artikel.
-- **Automatische Generierung von ALT Tags für Bilder:** Erstellen Sie azutomatisch Bildbeschreibungen für die ALT Tags der Bilder im Medienpool
+- **Automatische Generierung von ALT Tags für Bilder:** Erstellen Sie automatisch Bildbeschreibungen für die ALT Tags der Bilder im Medienpool
     - Passen Sie den Generierungsprozess mit auf Ihre Bedürfnisse zugeschnittenen Prompts an.
     - Verwenden Sie Platzhalter, um dynamisch Artikelinhalte oder Spracheinstellungen einzufügen.
     - Optimieren Sie die Ergebnisse mithilfe von Parametern wie Modellname, Temperatur und Token-Limits.
