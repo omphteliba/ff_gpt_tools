@@ -256,7 +256,8 @@ class GptTools
         }
 
         $this->description_field       = rex_addon::get($this->addon_name)->getConfig('descriptionfield');
-        $this->image_description_field = rex_addon::get($this->addon_name)->getConfig('image_descriptionfield');
+        // $this->image_description_field = rex_addon::get($this->addon_name)->getConfig('image_descriptionfield');
+        $this->image_description_field = rex_addon::get($this->addon_name)->getConfig('image_descriptionfield') ?: 'default_value';
 
         if (empty($this->description_field)) {
             throw new \InvalidArgumentException("description_field must be configured and cannot be empty.");
