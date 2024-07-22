@@ -44,7 +44,6 @@ Dieses REDAXO AddOn integriert die Leistungsfähigkeit der GPT-Sprachmodelle von
 
 **To Do:**
 - Momentan werden die von der KI generierten Meta-Beschreibungen in der Aufgabentabelle gespeichert. Ich habe die direkte Übertragung der Ergebnisse von OpenAI in den Artikel geändert, da es zu viele fehlerhafte Antworten gab. Ich werde eine Überprüfungsfunktion implementieren, um die generierten Meta-Beschreibungen zu kontrollieren, bevor sie im Artikel gespeichert werden.
-- Die Generierung der Bildbeschreibungen funktioniert noch nicht.
 
 **Unterstützung:**
 
