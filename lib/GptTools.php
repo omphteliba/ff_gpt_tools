@@ -255,7 +255,7 @@ class GptTools
             throw new \InvalidArgumentException("API key must be configured and cannot be empty.");
         }
 
-        $this->description_field       = rex_addon::get($this->addon_name)->getConfig('descriptionfield');
+        $this->description_field = rex_addon::get($this->addon_name)->getConfig('descriptionfield');
         // $this->image_description_field = rex_addon::get($this->addon_name)->getConfig('image_descriptionfield');
         $this->image_description_field = rex_addon::get($this->addon_name)->getConfig('image_descriptionfield') ?: 'default_value';
 
@@ -676,4 +676,21 @@ class GptTools
         return $this->getImageDescription();
     }
 
+    public static function getMediaDataByFilename($filename) {
+        $sql = rex_sql::factory();
+        $sql->setQuery('
+        SELECT id, category_id
+        FROM ' . rex::getTablePrefix() . 'media
+        WHERE filename = :filename
+    ', ['filename' => $filename]); // No need to escape here
+
+        if ($sql->getRows() > 0) {
+            return [
+                'file_id' => $sql->getValue('id'),
+                'category_id' => $sql->getValue('category_id')
+            ];
+        }
+
+        return false;
+    }
 }

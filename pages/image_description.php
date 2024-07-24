@@ -35,6 +35,9 @@ $addon      = rex_addon::get($addon_name);
 require_once rex_path::addon($addon_name, 'vendor/autoload.php');
 require_once rex_path::addon($addon_name, 'lib/GptTools.php');
 
+$valid_fileextensions = ['jpg', 'jpeg', 'png', 'webp', 'svg'];
+$valid_filetypes =['image/webp', 'image/svg+xml', 'image/jpeg', 'image/png'];
+
 $table_name = rex::getTable('ff_gpt_tools_tasks');
 
 $apiKey = $addon->getConfig('apikey');
@@ -67,7 +70,7 @@ if ($generate && !$csrfToken->isValid()) {
             $articles = rex_sql::factory();
             $articles->setDebug(false);
             $description_field = $addon->getConfig('descriptionfield');
-            $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE true ';
+            $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE filetype IN ("' . implode('", "', $valid_filetypes) . '");';
 
             try {
                 $articles->setQuery($query);
@@ -98,7 +101,7 @@ if ($generate && !$csrfToken->isValid()) {
             $articles = rex_sql::factory();
             $articles->setDebug(false);
             $description_field = $addon->getConfig('image_descriptionfield');
-            $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE ' . $description_field . ' = "" ';
+            $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE ' . $description_field . ' = "" AND filetype IN ("' . implode('", "', $valid_filetypes) . '")';
 
             try {
                 $articles->setQuery($query);
@@ -120,7 +123,7 @@ if ($generate && !$csrfToken->isValid()) {
                 }
             }
             break;
-        case 2: // one page
+        case 2: // one image
             $content .= rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_select_one') . '</br>' . PHP_EOL;
             foreach ($languages as $language) {
                 $result[] = array(
@@ -134,7 +137,7 @@ if ($generate && !$csrfToken->isValid()) {
                 $counter++;
             }
             break;
-        case 3: // list of pages
+        case 3: // list of images
             $content      .= rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_select_list') . '</br>' . PHP_EOL;
             $article_list = explode(",", rex_post('image_list', 'string'));
 
@@ -207,13 +210,14 @@ if (rex_get('func') === 'copy') {
     $sql->setTable($table_name);
     $sql->setWhere('id = :id', ['id' => $id]);
     $sql->select();
-    $mediaFolderPath     = rex_url::media(); // Get the path to the media folder
+    $mediaFolderPath = rex_url::media(); // Get the path to the media folder
     rex_logger::logError(1, $mediaFolderPath, __FILE__, __LINE__);
     $filename            = $sql->getValue('image_url'); // Get the filename with the media folder path
-    $filenameWithoutPath = str_replace($mediaFolderPath, '', $filename); // Remove the media folder path from the filename
+    $filenameWithoutPath = str_replace($mediaFolderPath, '',
+        $filename); // Remove the media folder path from the filename
     rex_logger::logError(1, $filenameWithoutPath, __FILE__, __LINE__);
-    $meta_description    = $sql->getValue('meta_description');
-    $description_field   = $addon->getConfig('image_descriptionfield');
+    $meta_description  = $sql->getValue('meta_description');
+    $description_field = $addon->getConfig('image_descriptionfield');
     $sql->setTable(rex::getTable('media'));
     $sql->setValue($description_field, $meta_description);
     $sql->setWhere('filename = :filename', ['filename' => $filenameWithoutPath]);
@@ -245,7 +249,7 @@ if ($sql->getRows() > 0) {
     $content .= '<thead>';
     $content .= '<tr>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_done') . '</th>';
-    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_image_url') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_image') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_date') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_image_description') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_language') . '</th>';
@@ -257,14 +261,36 @@ if ($sql->getRows() > 0) {
     $content .= '<tbody>';
 
     foreach ($sql as $row) {
-        $content .= '<tr>';
-        $content .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
-        $content .= '<td><img src="' . $row->getValue('image_url') . '" width="100px" alt="Image"></td>';
-        $content .= '<td>' . $row->getValue('date') . '</td>';
-        $content .= '<td>' . $row->getValue('meta_description') . '</td>';
-        $content .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
-        $content .= '<td>' . $row->getValue('prompt') . '</td>';
-        $content .= '<td>' . $row->getValue('error_text') . '</td>';
+        $mediaFolderPath = rex_url::media(); // Get the path to the media folder
+        rex_logger::logError(1, $mediaFolderPath, __FILE__, __LINE__);
+        $filename            = $sql->getValue('image_url'); // Get the filename with the media folder path
+        $filenameWithoutPath = str_replace($mediaFolderPath, '',
+            $filename); // Remove the media folder path from the filename
+        rex_logger::logError(1, $filenameWithoutPath, __FILE__, __LINE__);
+        $mediaData = \FactFinder\FfGptTools\lib\GptTools::getMediaDataByFilename($filenameWithoutPath);
+        $content   .= '<tr>';
+        $content   .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
+        // Fetch the rex_media object
+        $media = rex_media::get($filenameWithoutPath);
+
+        if ($media) { // Check if media object was found
+            $fileInfo = pathinfo($media->getFileName());
+            $fileExtension = strtolower($fileInfo['extension']);
+
+            if (in_array($fileExtension, $valid_fileextensions)) {
+                $content .= '<td><a href="#" onclick="openMediaDetails(\'\', \'' . $mediaData['file_id'] . '\', \'' . $mediaData['category_id'] . '\');return false;"><img src="' . $media->getUrl() . '" width="100px" alt="Image"></a></td>';
+            } else {
+                $content .= '<td><a href="#" onclick="openMediaDetails(\'\', \'' . $mediaData['file_id'] . '\', \'' . $mediaData['category_id'] . '\');return false;">' . $media->getFileName() . '</a></td>';
+            }
+        } else {
+            // Handle case where media object was not found (e.g., invalid file_id)
+            $content .= '<td>-</td>'; // Or display an error message
+        }
+        $content   .= '<td>' . $row->getValue('date') . '</td>';
+        $content   .= '<td>' . $row->getValue('meta_description') . '</td>';
+        $content   .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
+        $content   .= '<td>' . $row->getValue('prompt') . '</td>';
+        $content   .= '<td>' . $row->getValue('error_text') . '</td>';
         // show the copy button only when image_description isn't empty
         if ($row->getValue('meta_description') !== '') {
             $content .= '<td><a href="' . rex_url::currentBackendPage([
@@ -480,12 +506,12 @@ $content .= $fragment->parse('core/form/form.php');
 $formElements   = [];
 $n              = [];
 $n['label']     = '<label for="REX_LINK_1_NAME">' . rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_article') . '</label>';
-$n['field']     = rex_var_media::getWidget(1, 'single_image', '');
+$n['field']     = rex_var_media::getWidget(1, 'single_image', '', ['types' => implode(',', $valid_fileextensions)]);
 $formElements[] = $n;
 
 $n              = [];
 $n['label']     = '<label for="REX_LINK_2_NAME">' . rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_articlelist') . '</label>';
-$n['field']     = rex_var_medialist::getWidget(2, 'image_list', '');
+$n['field']     = rex_var_medialist::getWidget(2, 'image_list', '', ['types' => implode(',', $valid_fileextensions)]);
 $formElements[] = $n;
 
 $fragment = new rex_fragment();
