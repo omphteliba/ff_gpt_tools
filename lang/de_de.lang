@@ -85,7 +85,7 @@ ff_gpt_tools_generate_image_descriptions_max_tokens_note = Die maximale Anzahl d
 ff_gpt_tools_generate_image_descriptions_pages_legend = Bilder auswählen
 ff_gpt_tools_generate_image_descriptions_pages_select_note = Ausser "Bilder ohne Bildbeschreibung" überschreiben alle anderen Optionen die bestehenden Bildbeschreibungen.
 
-ff_gpt_tools_generate_image_descriptions_submit_button = In Warteschlage einstellen
+ff_gpt_tools_generate_image_descriptions_submit_button = In Warteschlange einstellen
 ff_gpt_tools_generate_image_descriptions_languages = Sprachen
 ff_gpt_tools_generate_image_descriptions_pages_select_all = Alle Bilder
 ff_gpt_tools_generate_image_descriptions_pages_select_empty = Bilder ohne Bildbeschreibung

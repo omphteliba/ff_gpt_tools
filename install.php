@@ -1,33 +1,38 @@
 <?php
+
 use FactFinder\FfGptTools\lib\FfGptToolsCronjob;
 
 // Check if the cronjob addon is available
 if (rex_addon::get('cronjob')->isAvailable()) {
 
-// Insert a new cronjob into the database
+    // Check if the cronjob already exists
     $sql = rex_sql::factory();
-    $sql->setTable(rex::getTable('cronjob'));
-    $sql->setValue('name', 'ff_gpt_tools_cronjob');
-    $sql->setValue('type', FfGptToolsCronjob::class);
-    $sql->setValue('interval', '{"minutes":"all","hours":"all,"days":"all","weekdays":"all","months":"all"}');
-    $sql->setValue('environment', '|script|');
-    $sql->setValue('execution_moment', 1); // 0 = before, 1 = after
-    $sql->setValue('status', 1); // 1 = active, 0 = inactive
+    $sql->setQuery('SELECT id FROM ' . rex::getTable('cronjob') . ' WHERE name = ?', ['ff_gpt_tools_cronjob']);
 
-// Set any parameters your cronjob class might require
-    $params = [
-// Your parameters go here
-    ];
-    $sql->setValue('parameters', json_encode($params));
+    if ($sql->getRows() == 0) { // Cronjob doesn't exist, so add it
+        $sql->reset();
+        $sql->setTable(rex::getTable('cronjob'));
+        $sql->setValue('name', 'ff_gpt_tools_cronjob');
+        $sql->setValue('type', FfGptToolsCronjob::class);
+        $sql->setValue('interval', '{"minutes":"all","hours":"all,"days":"all","weekdays":"all","months":"all"}');
+        $sql->setValue('environment', '|script|');
+        $sql->setValue('execution_moment', 1); // 0 = before, 1 = after
+        $sql->setValue('status', 1); // 1 = active, 0 = inactive
 
-// Insert the cronjob
-    $sql->insert();
+        // Set any parameters your cronjob class might require
+        $params = [
+            // Your parameters go here
+        ];
+        $sql->setValue('parameters', json_encode($params));
 
-// Check SQL error
-    if ($sql->hasError()) {
-        throw new rex_sql_exception('Failed to create cronjob: ' . $sql->getError(), $sql->getError());
+        // Insert the cronjob
+        $sql->insert();
+
+        // Check SQL error
+        if ($sql->hasError()) {
+            throw new rex_sql_exception('Failed to create cronjob: ' . $sql->getError(), $sql->getError());
+        }
     }
-
 } else {
 // Error message if cronjob addon is not available
     throw new rex_functional_exception('Cronjob addon is not available!');
