@@ -191,7 +191,7 @@ if ($content) {
 
 
 // function to trigger the cronjob by calling lib/FFGptToolsCronjob.php
-if (rex_get('func') === 'cronjob') {
+if (rex_get('func') === 'runTasks') {
     $cronjob = new \FactFinder\FfGptTools\lib\FFGptToolsCronjob();
     $cronjob->execute();
 }
@@ -298,7 +298,7 @@ if ($sql->getRows() > 0) {
     $buttons[] = $n;
 
     $n                        = [];
-    $n['url']                 = rex_url::backendPage('ff_gpt_tools/meta_generate', ['func' => 'cronjob']);
+    $n['url']                 = rex_url::backendPage('ff_gpt_tools/meta_generate', ['func' => 'runTasks']);
     $n['label']               = rex_i18n::msg('ff_gpt_tools_run_tasks');
     $n['attributes']['class'] = array('btn-primary');
 
