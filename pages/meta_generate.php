@@ -182,11 +182,7 @@ if ($content) {
     $fragment = new rex_fragment();
     $fragment->setVar('title', 'api-Output', false);
     $fragment->setVar('body', $content, false);
-    try {
-        echo $fragment->parse('core/page/section.php');
-    } catch (rex_exception $e) {
-        rex_logger::logException($e);
-    }
+    echo $fragment->parse('core/page/section.php');
 }
 
 
@@ -281,13 +277,8 @@ if ($sql->getRows() > 0) {
     $fragment = new rex_fragment();
     $fragment->setVar('title', rex_i18n::msg('ff_gpt_tools_tasks'), false);
     $fragment->setVar('body', $content, false);
-    try {
-        echo $fragment->parse('core/page/section.php');
-    } catch (rex_exception $e) {
-        rex_logger::logException($e);
-    }
+    echo $fragment->parse('core/page/section.php');
 
-    $content = '';
     $buttons = [];
 
     $n                        = [];
@@ -306,20 +297,12 @@ if ($sql->getRows() > 0) {
 
     $fragment = new rex_fragment();
     $fragment->setVar('buttons', $buttons, false);
-    try {
-        $content = $fragment->parse('core/buttons/button_group.php');
-    } catch (rex_exception $e) {
-        rex_logger::logException($e);
-    }
+    $content = $fragment->parse('core/buttons/button_group.php');
 
     $fragment = new rex_fragment();
     $fragment->setVar('title', 'Tools', false);
     $fragment->setVar('body', $content, false);
-    try {
-        echo $fragment->parse('core/page/section.php');
-    } catch (rex_exception $e) {
-        rex_logger::logException($e);
-    }
+    echo $fragment->parse('core/page/section.php');
 }
 
 // Info-Box
@@ -356,7 +339,7 @@ $gptTools = new \FactFinder\FfGptTools\lib\GptTools($addon_name);
 $availableModels = $gptTools->getAllAvailableModels();
 foreach ($availableModels as $model) {
     $tableSelect->addOption($model, $model);
-    if ($model = 'gpt-4') {
+    if ($model === 'gpt-4') {
         $tableSelect->setSelected($model);
     }
 }

@@ -85,9 +85,5 @@ if ($content) {
     $fragment = new rex_fragment();
     $fragment->setVar('title', 'api-Output', false);
     $fragment->setVar('body', $content, false);
-    try {
-        echo $fragment->parse('core/page/section.php');
-    } catch (rex_exception $e) {
-        rex_logger::logException($e);
-    }
+    echo $fragment->parse('core/page/section.php');
 }

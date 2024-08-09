@@ -188,11 +188,7 @@ if ($content) {
     $fragment = new rex_fragment();
     $fragment->setVar('title', 'api-Output', false);
     $fragment->setVar('body', $content, false);
-    try {
-        echo $fragment->parse('core/page/section.php');
-    } catch (rex_exception $e) {
-        rex_logger::logException($e);
-    }
+    echo $fragment->parse('core/page/section.php');
 }
 
 
@@ -262,11 +258,9 @@ if ($sql->getRows() > 0) {
 
     foreach ($sql as $row) {
         $mediaFolderPath = rex_url::media(); // Get the path to the media folder
-        rex_logger::logError(1, $mediaFolderPath, __FILE__, __LINE__);
         $filename            = $sql->getValue('image_url'); // Get the filename with the media folder path
-        $filenameWithoutPath = str_replace($mediaFolderPath, '',
-            $filename); // Remove the media folder path from the filename
-        rex_logger::logError(1, $filenameWithoutPath, __FILE__, __LINE__);
+        $filenameWithoutPath = str_replace($mediaFolderPath, '', $filename); // Remove the media folder path from the filename
+        // ToDO: Abfangen wenn das Ergebnis leer ist. Dann muss ich auch den rest nicht ausgeben, denke ich. Bin mir aber nicht sicher, weil schon so spät und heiss.
         $mediaData = \FactFinder\FfGptTools\lib\GptTools::getMediaDataByFilename($filenameWithoutPath);
         $content   .= '<tr>';
         $content   .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
@@ -308,11 +302,7 @@ if ($sql->getRows() > 0) {
     $fragment = new rex_fragment();
     $fragment->setVar('title', rex_i18n::msg('ff_gpt_tools_tasks'), false);
     $fragment->setVar('body', $content, false);
-    try {
-        echo $fragment->parse('core/page/section.php');
-    } catch (rex_exception $e) {
-        rex_logger::logException($e);
-    }
+    echo $fragment->parse('core/page/section.php');
 
     $content = '';
     $buttons = [];
@@ -333,20 +323,12 @@ if ($sql->getRows() > 0) {
 
     $fragment = new rex_fragment();
     $fragment->setVar('buttons', $buttons, false);
-    try {
-        $content = $fragment->parse('core/buttons/button_group.php');
-    } catch (rex_exception $e) {
-        rex_logger::logException($e);
-    }
+    $content = $fragment->parse('core/buttons/button_group.php');
 
     $fragment = new rex_fragment();
     $fragment->setVar('title', 'Tools', false);
     $fragment->setVar('body', $content, false);
-    try {
-        echo $fragment->parse('core/page/section.php');
-    } catch (rex_exception $e) {
-        rex_logger::logException($e);
-    }
+    echo $fragment->parse('core/page/section.php');
 }
 
 // Info-Box
@@ -383,7 +365,7 @@ $gptTools = new \FactFinder\FfGptTools\lib\GptTools($addon_name);
 $availableModels = $gptTools->getAllAvailableModels();
 foreach ($availableModels as $model) {
     $tableSelect->addOption($model, $model);
-    if ($model = 'gpt-4') {
+    if ($model === 'gpt-4') {
         $tableSelect->setSelected($model);
     }
 }

@@ -134,7 +134,6 @@ class FfGptToolsCronjob extends rex_cronjob
      */
     private function processMetaEntries(): array
     {
-        rex_logger::logError(1, "gptTool: processMetaEntries", __FILE__, __LINE__);
         $tableName = rex::getTablePrefix() . $this->ffgptdatabase;
         $sql       = "SELECT * FROM $tableName WHERE article_id <> '' AND done = 0 AND (error_flag = 0 OR error_flag IS NULL) ORDER BY date LIMIT " . $this->maxEntriesProcessed;
 
@@ -186,6 +185,7 @@ class FfGptToolsCronjob extends rex_cronjob
         }
         if ($content !== '') {
             $gptTools->setPrompt($this->parsePrompt($sqlObject->getValue('prompt'), $clangName, $content));
+            /** @phpstan-ignore else.unreachable */
         } else {
             $message1 = "Error getting the content for Article: $articleId.";
             $this->logError($message1);
@@ -210,9 +210,12 @@ class FfGptToolsCronjob extends rex_cronjob
         return false;
     }
 
+    /**
+     * @return array
+     * @throws \rex_sql_exception
+     */
     function processImageEntries(): array
     {
-        rex_logger::logError(1, "gptTool: processImageEntries", __FILE__, __LINE__);
         $tableName = rex::getTablePrefix() . $this->ffgptdatabase;
         $sql       = "SELECT * FROM $tableName WHERE article_id = '' AND done = 0 AND (error_flag = 0 OR error_flag IS NULL) ORDER BY date LIMIT " . $this->maxEntriesProcessed;
 
@@ -235,6 +238,14 @@ class FfGptToolsCronjob extends rex_cronjob
         return $result;
     }
 
+    /**
+     * @param $sqlObject
+     * @param $gptTools
+     * @param $tableName
+     *
+     * @return bool
+     * @throws \rex_exception
+     */
     function processSingleImageEntry($sqlObject, $gptTools, $tableName): bool
     {
         $gptTools->setModelName($sqlObject->getValue('model'));
@@ -344,11 +355,11 @@ class FfGptToolsCronjob extends rex_cronjob
     /**
      * Remove HTML entities from a string
      *
-     * @param $string
+     * @param string $string
      *
      * @return array|string
      */
-    public function removeHtmlEntities($string): array|string
+    public function removeHtmlEntities(string $string): array|string
     {
         // List of common HTML entities to remove
         $entitiesToRemove = array('&quot;', '&amp;', '&lt;', '&gt;', '&apos;', '"');
@@ -372,11 +383,11 @@ class FfGptToolsCronjob extends rex_cronjob
 
     // private method that checks if an url exists
     /**
-     * @param $url
+     * @param string $url
      *
      * @return bool
      */
-    private function urlExists($url): bool
+    private function urlExists(string $url): bool
     {
         $file_headers = @get_headers($url);
 

@@ -9,7 +9,7 @@ if (rex_addon::get('cronjob')->isAvailable()) {
     $sql = rex_sql::factory();
     $sql->setQuery('SELECT id FROM ' . rex::getTable('cronjob') . ' WHERE name = ?', ['ff_gpt_tools_cronjob']);
 
-    if ($sql->getRows() == 0) { // Cronjob doesn't exist, so add it
+    if ($sql->getRows() === 0) { // Cronjob doesn't exist, so add it
         $sql->reset();
         $sql->setTable(rex::getTable('cronjob'));
         $sql->setValue('name', 'ff_gpt_tools_cronjob');
@@ -30,7 +30,7 @@ if (rex_addon::get('cronjob')->isAvailable()) {
 
         // Check SQL error
         if ($sql->hasError()) {
-            throw new rex_sql_exception('Failed to create cronjob: ' . $sql->getError(), $sql->getError());
+            throw new rex_sql_exception('Failed to create cronjob: ' . $sql->getError());
         }
     }
 } else {

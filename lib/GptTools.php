@@ -462,7 +462,7 @@ class GptTools
      * @param DOMNode  $element
      * @param string   $id
      */
-    private function removeElementById(DOMXPath $xpath, DOMNode $element, string $id): void
+    private function removeElementById(DOMXPath $xpath, DOMNode $element, string $id): void // @phpstan-ignore-line
     {
         $elements = $xpath->query("//*[@id='$id']", $element);
         foreach ($elements as $el) {
@@ -490,6 +490,7 @@ class GptTools
                     ['role' => 'user', 'content' => $this->prompt],
                 ],
             ]);
+
             // OpenAI doesn't return an error, so no error handling. Yay!
 
             return $response['choices'][0]['message']['content'];// Return the meta-description
@@ -513,9 +514,6 @@ class GptTools
         try {
             $client = OpenAI::client($this->apiKey);
 
-            // Debug Step 1: Log the imageUrl
-            rex_logger::logError(1, 'Image URL: ' . $this->imageUrl, __FILE__, __LINE__);
-
             $response = $client->chat()->create([
                 'model'       => $this->modelName,
                 'max_tokens'  => $this->maxTokens,
@@ -531,9 +529,6 @@ class GptTools
                     ],
                 ],
             ]);
-
-            // Debug Step 4: Log the entire API response
-            rex_logger::logError(1, 'OpenAI API Response: ' . print_r($response, true), __FILE__, __LINE__);
 
             return $response['choices'][0]['message']['content'];// Return the meta-description
         } catch (Exception $e) {
@@ -562,7 +557,7 @@ class GptTools
     /**
      * Fetches all available OpenAI models.
      *
-     * @return array List of available models.
+     * @return array<int, string> List of available models.
      */
     public function getAllAvailableModels(): array
     {
@@ -663,7 +658,15 @@ class GptTools
         return $this->getImageDescription();
     }
 
-    public static function getMediaDataByFilename($filename) {
+    /**
+     * Fetches the media data by filename.
+     *
+     * @param string $filename The filename of the media.
+     *
+     * @return array<int, int> The media data if found, false otherwise.
+     */
+    public static function getMediaDataByFilename(string $filename): array
+    {
         $sql = rex_sql::factory();
         $sql->setQuery('
         SELECT id, category_id
@@ -673,12 +676,15 @@ class GptTools
 
         if ($sql->getRows() > 0) {
             return [
-                'file_id' => $sql->getValue('id'),
-                'category_id' => $sql->getValue('category_id')
+                'file_id'     => (int)$sql->getValue('id'),
+                'category_id' => (int)$sql->getValue('category_id'),
             ];
         }
 
-        return false;
+        return [
+            'file_id' => 0,
+            'category_id' => 0,
+        ];
     }
 
 }
