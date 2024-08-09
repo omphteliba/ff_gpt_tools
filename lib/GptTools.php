@@ -490,13 +490,7 @@ class GptTools
                     ['role' => 'user', 'content' => $this->prompt],
                 ],
             ]);
-
-            // Check for errors in the API response here, if any
-            if (isset($response['error'])) {
-                rex_logger::logError(1, 'OpenAI API Error: ' . $response['error'], __FILE__, __LINE__);
-
-                return '';
-            }
+            // OpenAI doesn't return an error, so no error handling. Yay!
 
             return $response['choices'][0]['message']['content'];// Return the meta-description
         } catch (Exception $e) {
@@ -540,13 +534,6 @@ class GptTools
 
             // Debug Step 4: Log the entire API response
             rex_logger::logError(1, 'OpenAI API Response: ' . print_r($response, true), __FILE__, __LINE__);
-
-            // Check for errors in the API response here, if any
-            if (isset($response['error'])) {
-                rex_logger::logError(1, 'OpenAI API Error: ' . $response['error'], __FILE__, __LINE__);
-
-                return '';
-            }
 
             return $response['choices'][0]['message']['content'];// Return the meta-description
         } catch (Exception $e) {
@@ -693,5 +680,5 @@ class GptTools
 
         return false;
     }
-    
+
 }

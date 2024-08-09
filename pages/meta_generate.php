@@ -192,7 +192,7 @@ if ($content) {
 
 // function to trigger the cronjob by calling lib/FFGptToolsCronjob.php
 if (rex_get('func') === 'runTasks') {
-    $cronjob = new \FactFinder\FfGptTools\lib\FFGptToolsCronjob();
+    $cronjob = new \FactFinder\FfGptTools\lib\FfGptToolsCronjob();
     $cronjob->execute();
 }
 

@@ -41,20 +41,12 @@ $buttons[] = $n;
 
 $fragment = new rex_fragment();
 $fragment->setVar('buttons', $buttons, false);
-try {
-    $content = $fragment->parse('core/buttons/button_group.php');
-} catch (rex_exception $e) {
-    rex_logger::logException($e);
-}
+$content = $fragment->parse('core/buttons/button_group.php');
 
 $fragment = new rex_fragment();
 $fragment->setVar('title', 'Tools', false);
 $fragment->setVar('body', $content, false);
-try {
-    echo $fragment->parse('core/page/section.php');
-} catch (rex_exception $e) {
-    rex_logger::logException($e);
-}
+echo $fragment->parse('core/page/section.php');
 
 $content = '';
 
