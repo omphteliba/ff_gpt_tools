@@ -71,7 +71,7 @@ class FfGptToolsCronjob extends rex_cronjob
     /**
      * @return string
      */
-    public function getFfgptdatabase(): string
+    public function getFfGptDatabase(): string
     {
         return $this->ffgptdatabase;
     }
