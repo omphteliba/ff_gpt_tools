@@ -8,6 +8,7 @@
 
 namespace FactFinder\FfGptTools\pages;
 
+use FactFinder\FfGptTools\lib\GptTools;
 use rex;
 use rex_addon;
 use rex_article;
@@ -188,8 +189,10 @@ if ($content) {
 
 // function to trigger the cronjob by calling lib/FFGptToolsCronjob.php
 if (rex_get('func') === 'runTasks') {
-    $cronjob = new \FactFinder\FfGptTools\lib\FfGptToolsCronjob();
-    $cronjob->execute();
+//    $cronjob = new \FactFinder\FfGptTools\lib\FfGptToolsCronjob();
+//    $cronjob->execute();
+    $gpttool = new GptTools('ff_gpt_tools');
+    $processedMetaEntries = $gpttool->processMetaEntries();
 }
 
 // copy function

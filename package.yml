@@ -3,7 +3,7 @@
 # Alle hier gesetzten Werte können über `$addon->getProperty($key)` abgefragt werden
 
 package: ff_gpt_tools # Pflichtfeld
-version: "0.3" # Pflichtfeld
+version: "0.4" # Pflichtfeld
 author: omphteliba # Pflichtfeld für FOR-AddOns
 supportpage: https://github.com/omphteliba/ff_gpt_tools # Github-Adresse des AddOns
 
@@ -13,7 +13,7 @@ supportpage: https://github.com/omphteliba/ff_gpt_tools # Github-Adresse des Add
 # Seiten des AddOns
 page:
     title: "translate:navititle" # Bezeichnung in der REDAXO Navigation
-    icon: rex-icon fa-desktop # Icon von Font Awesome
+    icon: rex-icon fa-solid fa-wand-magic-sparkles # Icon von Font Awesome
     perm: ff_gpt_tools[] # Seite ist nur für Admins erreichbar
     pjax: false # Hier kann die Verwendung von PJAX für das eigene AddOn gesteuert werden
     # mit der Einstellung `prio` kann die Position im Hauptmenü beeinflusst werden
@@ -24,7 +24,7 @@ page:
         meta_generate:
             title: "translate:meta_generate"
             perm: ff_gpt_tools[meta_generate] # Das AddOn-Benutzerrecht `meta_generate` ist für diese Unterseite erforderlich. Admins haben alle Rechte.
-            icon: rex-icon fa-cogs
+            icon: rex-icon fa-solid fa-wand-sparkles
         image_description:
             title: "translate:image_description"
             perm: ff_gpt_tools[image_description] # Das AddOn-Benutzerrecht `meta_generate` ist für diese Unterseite erforderlich. Admins haben alle Rechte.
