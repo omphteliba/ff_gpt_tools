@@ -49,7 +49,12 @@ if (empty($apiKey)) {
 
 $clangId = filter_var(rex_be_controller::getCurrentPagePart(3), FILTER_SANITIZE_NUMBER_INT);
 //$prompt_default = 'Act as an SEO specialist with ten years of experience. Please summarize this article in $prompt_lang in 18 words or less for the image-description of a website: $prompt_content';
-$prompt_default = 'Act as an SEO specialist with ten years of experience in accessibility. Generate a descriptive ALT tag for the provided image. Ensure the description is clear, concise, and accurately represents the content and context of the image. Include relevant keywords without compromising the clarity needed for accessibility. Language: $prompt_lang. Limit the description to 18 words or less.';
+
+if ($addon->getConfig('image_prompt')!== '') {
+    $prompt_default = $addon->getConfig('image_prompt');
+} else {
+    $prompt_default = 'Act as an SEO specialist with ten years of experience in accessibility. Generate a descriptive ALT tag for the provided image. Ensure the description is clear, concise, and accurately represents the content and context of the image. Include relevant keywords without compromising the clarity needed for accessibility. Language: $prompt_lang. Limit the description to 18 words or less.';
+}
 $content        = '';
 
 $csrfToken = rex_csrf_token::factory('gpt-tools');

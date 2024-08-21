@@ -56,6 +56,15 @@ $field = $form->addInputField('text', 'image_descriptionfield', $addon->getConfi
     ['class' => 'form-control']);
 $field->setLabel(rex_i18n::msg('ff_gpt_tools_image_descriptionfield'));
 
+$field = $form->addTextAreaField('meta_prompt', $addon->getConfig('meta_prompt'),
+    ['class' => 'form-control']);
+$field->setLabel(rex_i18n::msg('ff_gpt_tools_meta_prompt'));
+
+$field = $form->addTextAreaField('image_prompt', $addon->getConfig('image_prompt'),
+    ['class' => 'form-control']);
+$field->setLabel(rex_i18n::msg('ff_gpt_tools_image_prompt'));
+
+
 // Ausgabe des Formulars
 $fragment = new rex_fragment();
 $fragment->setVar('class', 'edit', false);

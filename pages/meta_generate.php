@@ -44,12 +44,17 @@ if (empty($apiKey)) {
 
 $clangId = filter_var(rex_be_controller::getCurrentPagePart(3), FILTER_SANITIZE_NUMBER_INT);
 //$prompt_default = 'Act as an SEO specialist with ten years of experience. Please summarize this article in $prompt_lang in 18 words or less for the meta-description of a website: $prompt_content';
-$prompt_default = 'Act as an SEO specialist with ten years of experience. You are summarizing a web article for an SEO-optimized meta-description. Language: $prompt_lang. Include relevant keywords and ensure the summary is concise, engaging, and accurately represents the article content. Limit your summary to 18 words or less.
+if ($addon->getConfig('meta_prompt')) {
+    $prompt_default = $addon->getConfig('meta_prompt');
+} else {
+    $prompt_default = 'Act as an SEO specialist with ten years of experience. You are summarizing a web article for an SEO-optimized meta-description. Language: $prompt_lang. Include relevant keywords and ensure the summary is concise, engaging, and accurately represents the article content. Limit your summary to 18 words or less.
 
 Article content to summarize:
 $prompt_content
 ';
-$content        = '';
+
+}
+$content = '';
 
 $csrfToken = rex_csrf_token::factory('gpt-tools');
 $generate  = rex_post('generate', 'bool');
@@ -191,7 +196,7 @@ if ($content) {
 if (rex_get('func') === 'runTasks') {
 //    $cronjob = new \FactFinder\FfGptTools\lib\FfGptToolsCronjob();
 //    $cronjob->execute();
-    $gpttool = new GptTools('ff_gpt_tools');
+    $gpttool              = new GptTools('ff_gpt_tools');
     $processedMetaEntries = $gpttool->processMetaEntries();
 }
 

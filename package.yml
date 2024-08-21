@@ -52,3 +52,5 @@ configvars:
     apikey:
     descriptionfield:
     image_descriptionfield:
+    meta_prompt:
+    image_prompt:

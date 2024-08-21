@@ -116,41 +116,41 @@ class GptTools
             $content = $gptTools->getUrlContent($fullUrlByArticleId);
             if (empty($content)) {
                 $message = "Error: No content to summarize for Article ID: $articleId.";
-                GptTools::logError($message);
-                GptTools::updateErrorFlag($sqlObject, $tableName, $articleId, $clang, $message);
+                self::logError($message);
+                self::updateErrorFlag($sqlObject, $tableName, $articleId, $clang, $message);
 
                 return false;
             }
         } catch (Exception $e) {
             $message = "Error: No content to summarize for Article ID: $articleId.";
             rex_logger::logException($e);
-            GptTools::updateErrorFlag($sqlObject, $tableName, $articleId, $clang, $message);
+            self::updateErrorFlag($sqlObject, $tableName, $articleId, $clang, $message);
 
             return false;
         }
         if ($content !== '') {
-            $gptTools->setPrompt(GptTools::parsePrompt($sqlObject->getValue('prompt'), $clangName, $content));
+            $gptTools->setPrompt(self::parsePrompt($sqlObject->getValue('prompt'), $clangName, $content));
             /** @phpstan-ignore else.unreachable */
         } else {
             $message1 = "Error getting the content for Article: $articleId.";
-            GptTools::logError($message1);
-            GptTools::updateErrorFlag($sqlObject, $tableName, $articleId, $clang,
+            self::logError($message1);
+            self::updateErrorFlag($sqlObject, $tableName, $articleId, $clang,
                 $message1); // Mark as error to prevent reprocessing
 
             return false;
         }
-        GptTools::logError($gptTools->getPrompt());
+        // GptTools::logError($gptTools->getPrompt());
         $gptTools->setTemperature($sqlObject->getValue('temp'));
         $gptTools->setMaxTokens($sqlObject->getValue('max_token'));
-        $metaDescription = GptTools::removeHtmlEntities($gptTools->getMetaDescription());
+        $metaDescription = self::removeHtmlEntities($gptTools->getMetaDescription());
 
         if ($gptTools->updateRedaxoMetaDescription($metaDescription, $articleId, $clang)) {
-            GptTools::updateDatabaseEntry($sqlObject, $tableName, $metaDescription);
+            self::updateDatabaseEntry($sqlObject, $tableName, $metaDescription);
 
             return true;
         }
 
-        GptTools::logError("Error updating the meta description for Article: $articleId.");
+        self::logError("Error updating the meta description for Article: $articleId.");
 
         return false;
     }
@@ -274,7 +274,7 @@ class GptTools
         $result   = ['success' => 0, 'failure' => 0, 'messages' => []];
 
         while ($sqlObject->hasNext()) {
-            $success = GptTools::processSingleImageEntry($sqlObject, $gptTools, $tableName);
+            $success = self::processSingleImageEntry($sqlObject, $gptTools, $tableName);
             if ($success) {
                 $result['success']++;
             } else {
@@ -314,7 +314,7 @@ class GptTools
 
             return false;
         }
-        GptTools::logError($gptTools->getPrompt());
+        //GptTools::logError($gptTools->getPrompt());
         $gptTools->setTemperature($sqlObject->getValue('temp'));
         $gptTools->setMaxTokens($sqlObject->getValue('max_token'));
         $metaDescription = GptTools::removeHtmlEntities($gptTools->getImageDescription());
