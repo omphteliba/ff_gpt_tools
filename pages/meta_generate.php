@@ -104,7 +104,7 @@ if ($generate && !$csrfToken->isValid()) {
             $content  .= rex_i18n::msg('ff_gpt_tools_generate_meta_descriptions_pages_select_empty') . '</br>' . PHP_EOL;
             $articles = rex_sql::factory();
             $articles->setDebug(false);
-            $description_field = $addon->getConfig('descriptionfield');
+            $description_field = $articles->escapeIdentifier($addon->getConfig('descriptionfield'));
             $query             = 'SELECT id, clang_id FROM ' . rex::getTable('article') . ' WHERE ' . $description_field . ' = "" ';
 
             try {

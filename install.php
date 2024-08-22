@@ -7,7 +7,7 @@ if (rex_addon::get('cronjob')->isAvailable()) {
 
     // Check if the cronjob already exists
     $sql = rex_sql::factory();
-    $sql->setQuery('SELECT id FROM ' . rex::getTable('cronjob') . ' WHERE name = ?', ['ff_gpt_tools_cronjob']);
+    $sql->setQuery('SELECT * FROM ' . rex::getTable('cronjob') . ' WHERE name = ?', ['ff_gpt_tools_cronjob']);
 
     if ($sql->getRows() === 0) { // Cronjob doesn't exist, so add it
         $sql->reset();

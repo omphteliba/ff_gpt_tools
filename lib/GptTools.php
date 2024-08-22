@@ -82,7 +82,7 @@ class GptTools
     private int $maxTokens = 18;
 
     /**
-     * @var
+     * @var string
      */
     private $imageUrl;
 
@@ -250,7 +250,7 @@ class GptTools
             $sqlUpdateObject->setTable($tableName);
             $sqlUpdateObject->setValue('done', 1);
             $sqlUpdateObject->setValue('meta_description', $metaDescription);
-            $sqlUpdateObject->setWhere('id = ' . $sqlObject->getValue('id'));
+            $sqlUpdateObject->setWhere('id = :id', ['id' => $sqlObject->getValue('id')]);
             $sqlUpdateObject->update();
         } catch (rex_sql_exception $e) {
             rex_logger::logException($e);
@@ -264,11 +264,11 @@ class GptTools
      */
     function processImageEntries(): array
     {
-        $tableName = rex::getTablePrefix() . $this->ffgptdatabase;
-        $sql       = "SELECT * FROM $tableName WHERE article_id = '' AND done = 0 AND (error_flag = 0 OR error_flag IS NULL) ORDER BY date LIMIT " . $this->maxEntriesProcessed;
+        $tableName = rex::getTable($this->ffgptdatabase);
+        $sql       = "SELECT * FROM $tableName WHERE article_id = '' AND done = 0 AND (error_flag = 0 OR error_flag IS NULL) ORDER BY date LIMIT :maxEntriesProcessed";
 
         $sqlObject = rex_sql::factory();
-        $sqlObject->setQuery($sql);
+        $sqlObject->setQuery($sql, ['maxEntriesProcessed' => $this->maxEntriesProcessed]);
 
         $gptTools = new GptTools('ff_gpt_tools');
         $result   = ['success' => 0, 'failure' => 0, 'messages' => []];
@@ -561,12 +561,16 @@ class GptTools
         $article = rex_sql::factory();
         $article->setDebug(false);
         $query = 'UPDATE ' . rex::getTable('article') . '
-        SET ' . $this->description_field . ' = "' . $metaDescription . '"
-        WHERE id = "' . $articleId . '"
-        AND clang_id = "' . $clang . '"';
-
+SET ' . $article->escapeIdentifier($this->description_field) . ' = :metaDescription
+WHERE id = :articleId
+AND clang_id = :clang';
         try {
-            $article->setQuery($query);
+            $article->setQuery($query, [
+                'metaDescription' => $metaDescription,
+                'articleId'       => $articleId,
+                'clang'           => $clang,
+            ]);
+
         } catch (rex_sql_exception $e) {
             rex_logger::logException($e);
 
@@ -589,11 +593,14 @@ class GptTools
         $article = rex_sql::factory();
         $article->setDebug(false);
         $query = 'UPDATE ' . rex::getTable('media') . '
-        SET ' . $this->image_description_field . ' = "' . $metaDescription . '"
-        WHERE filename = "' . $image . '"';
+SET ' . $article->escapeIdentifier($this->image_description_field) . ' = :metaDescription
+WHERE filename = :image';
 
         try {
-            $article->setQuery($query);
+            $article->setQuery($query, [
+                'metaDescription' => $metaDescription,
+                'image'           => $image,
+            ]);
         } catch (rex_sql_exception $e) {
             rex_logger::logException($e);
 
@@ -611,9 +618,9 @@ class GptTools
     {
         $output   = '';
         $articles = rex_sql::factory();
-        $articles->setDebug(true);
+        $articles->setDebug(false);
         $query = 'SELECT id, clang_id FROM ' . rex::getTable('article') . '
-        WHERE ' . $this->description_field . ' = "" LIMIT 1';
+        WHERE ' . $articles->escapeIdentifier($this->description_field) . ' = "" LIMIT 1';
 
         try {
             $articles->setQuery($query);
@@ -943,9 +950,11 @@ class GptTools
     ', ['filename' => $filename]); // No need to escape here
 
         if ($sql->getRows() > 0) {
+            $id_value = (int)$sql->getValue('id');
+            $category_id_value = (int)$sql->getValue('category_id');
             return [
-                'file_id'     => (int)$sql->getValue('id'),
-                'category_id' => (int)$sql->getValue('category_id'),
+                'file_id'     => $id_value,
+                'category_id' => $category_id_value,
             ];
         }
 
@@ -962,7 +971,7 @@ class GptTools
      */
     public function processMetaEntries(): array
     {
-        $tableName = rex::getTablePrefix() . $this->ffgptdatabase;
+        $tableName = rex::getTable($this->ffgptdatabase);
         $sql       = "SELECT * FROM $tableName WHERE article_id <> '' AND done = 0 AND (error_flag = 0 OR error_flag IS NULL) ORDER BY date LIMIT " . $this->maxEntriesProcessed;
 
         $sqlObject = rex_sql::factory();

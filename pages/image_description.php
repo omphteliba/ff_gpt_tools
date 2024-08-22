@@ -102,11 +102,11 @@ if ($generate && !$csrfToken->isValid()) {
             }
             $content .= 'Count: ' . $counter . '</br>' . PHP_EOL;
             break;
-        case 1: // empty pages
+        case 1: // empty image description
             $content  .= rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_select_empty') . '</br>' . PHP_EOL;
             $articles = rex_sql::factory();
-            $articles->setDebug(false);
-            $description_field = $addon->getConfig('image_descriptionfield');
+            $articles->setDebug(true);
+            $description_field = $articles->escapeIdentifier($addon->getConfig('image_descriptionfield'));
             $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE ' . $description_field . ' = "" AND filetype IN ("' . implode('", "', $valid_filetypes) . '")';
 
             try {
@@ -215,11 +215,11 @@ if (rex_get('func') === 'copy') {
     $sql->setWhere('id = :id', ['id' => $id]);
     $sql->select();
     $mediaFolderPath = rex_url::media(); // Get the path to the media folder
-    rex_logger::logError(1, $mediaFolderPath, __FILE__, __LINE__);
+    // rex_logger::logError(1, $mediaFolderPath, __FILE__, __LINE__);
     $filename            = $sql->getValue('image_url'); // Get the filename with the media folder path
     $filenameWithoutPath = str_replace($mediaFolderPath, '',
         $filename); // Remove the media folder path from the filename
-    rex_logger::logError(1, $filenameWithoutPath, __FILE__, __LINE__);
+    // rex_logger::logError(1, $filenameWithoutPath, __FILE__, __LINE__);
     $meta_description  = $sql->getValue('meta_description');
     $description_field = $addon->getConfig('image_descriptionfield');
     $sql->setTable(rex::getTable('media'));
@@ -269,7 +269,7 @@ if ($sql->getRows() > 0) {
         $filename            = $sql->getValue('image_url'); // Get the filename with the media folder path
         $filenameWithoutPath = str_replace($mediaFolderPath, '', $filename); // Remove the media folder path from the filename
         // ToDO: Abfangen wenn das Ergebnis leer ist. Dann muss ich auch den rest nicht ausgeben, denke ich. Bin mir aber nicht sicher, weil schon so spät und heiss.
-        $mediaData = \FactFinder\FfGptTools\lib\GptTools::getMediaDataByFilename($filenameWithoutPath);
+        $mediaData = GptTools::getMediaDataByFilename($filenameWithoutPath);
         $content   .= '<tr>';
         $content   .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
         // Fetch the rex_media object
@@ -368,7 +368,7 @@ $tableSelect = new rex_select();
 $tableSelect->setId('rex-form-model');
 $tableSelect->setName('model');
 $tableSelect->setAttribute('class', 'form-control');
-$gptTools = new \FactFinder\FfGptTools\lib\GptTools($addon_name);
+$gptTools = new GptTools($addon_name);
 // Fetch all available models
 $availableModels = $gptTools->getAllAvailableModels();
 foreach ($availableModels as $model) {

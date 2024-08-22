@@ -28,7 +28,7 @@ ff_gpt_tools_functions = Funktionen
 ff_gpt_tools_copy = Kopieren
 
 ff_gpt_tools_delete = Alle Aufgaben löschen
-ff_gpt_tools_run_tasks = Tasks ausführen
+ff_gpt_tools_run_tasks = Aufgaben ausführen
 
 ff_gpt_tools_generate_meta_descriptions = Meta Descriptions generieren
 ff_gpt_tools_generate_meta_descriptions_information = Information
