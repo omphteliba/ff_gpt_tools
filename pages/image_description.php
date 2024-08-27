@@ -105,7 +105,7 @@ if ($generate && !$csrfToken->isValid()) {
         case 1: // empty image description
             $content  .= rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_select_empty') . '</br>' . PHP_EOL;
             $articles = rex_sql::factory();
-            $articles->setDebug(true);
+            $articles->setDebug(false);
             $description_field = $articles->escapeIdentifier($addon->getConfig('image_descriptionfield'));
             $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE ' . $description_field . ' = "" AND filetype IN ("' . implode('", "', $valid_filetypes) . '")';
 
@@ -246,7 +246,7 @@ $table_name = rex::getTable('ff_gpt_tools_tasks');
 // fetch the fields id, done, article_id, date, image_description, clang, prompt and error_flag from database $table_name and show it as a html table
 $sql = rex_sql::factory();
 $sql->setDebug(false);
-$sql->setQuery('SELECT id, done, image_url, date, meta_description, clang, prompt, error_text FROM ' . $table_name . ' WHERE article_id IS NULL OR article_id = "" ORDER BY date DESC');
+$sql->setQuery('SELECT id, done, image_url, date, meta_description, clang, prompt, model, error_text FROM ' . $table_name . ' WHERE article_id IS NULL OR article_id = "" ORDER BY date DESC');
 if ($sql->getRows() > 0) {
     $content = '';
     $content .= '<table class="table table-striped">';
@@ -258,6 +258,7 @@ if ($sql->getRows() > 0) {
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_image_description') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_language') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_prompt') . '</th>';
+    $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_model') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_error') . '</th>';
     $content .= '<th scope="col">' . rex_i18n::msg('ff_gpt_tools_functions') . '</th>';
     $content .= '</tr>';
@@ -292,6 +293,7 @@ if ($sql->getRows() > 0) {
         $content   .= '<td>' . $row->getValue('meta_description') . '</td>';
         $content   .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
         $content   .= '<td>' . $row->getValue('prompt') . '</td>';
+        $content   .= '<td>' . $row->getValue('model') . '</td>';
         $content   .= '<td>' . $row->getValue('error_text') . '</td>';
         // show the copy button only when image_description isn't empty
         if ($row->getValue('meta_description') !== '') {
@@ -373,7 +375,7 @@ $gptTools = new GptTools($addon_name);
 $availableModels = $gptTools->getAllAvailableModels();
 foreach ($availableModels as $model) {
     $tableSelect->addOption($model, $model);
-    if ($model === 'gpt-4') {
+    if ($model === 'gpt-4o-mini') {
         $tableSelect->setSelected($model);
     }
 }

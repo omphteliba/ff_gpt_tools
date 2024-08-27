@@ -23,6 +23,7 @@ ff_gpt_tools_date = Date
 ff_gpt_tools_meta_description = Meta Description
 ff_gpt_tools_language = Language
 ff_gpt_tools_prompt = Prompt
+ff_gpt_tools_model = Model
 ff_gpt_tools_error = Error
 ff_gpt_tools_functions = Functions
 ff_gpt_tools_copy = Copy

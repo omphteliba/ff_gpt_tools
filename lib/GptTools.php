@@ -303,13 +303,13 @@ class GptTools
         $image     = rex::getServer() . substr($image, 2);
 
         // check if the file $image exists
-        if (GptTools::urlExists($image)) {
-            $gptTools->setPrompt(GptTools::parsePrompt($sqlObject->getValue('prompt'), $clangName, ''));
+        if (self::urlExists($image)) {
+            $gptTools->setPrompt(self::parsePrompt($sqlObject->getValue('prompt'), $clangName, ''));
             $gptTools->setImageUrl($image);
         } else {
             $message1 = "Error getting the image: $image.";
-            GptTools::logError($message1);
-            GptTools::updateErrorFlag($sqlObject, $tableName, $sqlObject->getValue('image_url'), $clang,
+            self::logError($message1);
+            self::updateErrorFlag($sqlObject, $tableName, $sqlObject->getValue('image_url'), $clang,
                 $message1); // Mark as error to prevent reprocessing
 
             return false;
@@ -317,15 +317,15 @@ class GptTools
         //GptTools::logError($gptTools->getPrompt());
         $gptTools->setTemperature($sqlObject->getValue('temp'));
         $gptTools->setMaxTokens($sqlObject->getValue('max_token'));
-        $metaDescription = GptTools::removeHtmlEntities($gptTools->getImageDescription());
+        $metaDescription = self::removeHtmlEntities($gptTools->getImageDescription());
 
         if ($gptTools->updateRedaxoImageDescription($metaDescription, $sqlObject->getValue('image_url'))) {
-            GptTools::updateDatabaseEntry($sqlObject, $tableName, $metaDescription);
+            self::updateDatabaseEntry($sqlObject, $tableName, $metaDescription);
 
             return true;
         }
 
-        GptTools::logError("Error updating the meta description for Image: $sqlObject->getValue('image_url').");
+        self::logError("Error updating the meta description for Image: $sqlObject->getValue('image_url').");
 
         return false;
     }
@@ -777,6 +777,42 @@ WHERE filename = :image';
         }
     }
 
+    public /**
+     * Converts an image from a given URL to a base64-encoded data URL.
+     *
+     * @param string $imageUrl The URL of the image.
+     * @return string The base64-encoded data URL, or null if an error occurred.
+     */
+    function imageUrlToBase64DataUrl(string $imageUrl): ?string
+    {
+        // Fetch the image content from the URL.
+        $imageContent = @file_get_contents($imageUrl);
+
+        // Check if fetching the image was successful.
+        if ($imageContent === false) {
+            // Handle the error, e.g., by logging it or returning a default image.
+            self::logError("Failed to fetch image from URL: $imageUrl");
+            return null;
+        }
+
+        // Determine the image's MIME type.
+        $imageInfo = getimagesizefromstring($imageContent);
+        $imageMimeType = $imageInfo['mime'] ?? null;
+
+        // Check if the MIME type could be determined.
+        if ($imageMimeType === null) {
+            // Handle the error, e.g., by logging it.
+            self::logError("Failed to determine MIME type for image: $imageUrl");
+            return null;
+        }
+
+        // Encode the image content to base64.
+        $base64EncodedImage = base64_encode($imageContent);
+
+        // Construct and return the data URL.
+        return "data:$imageMimeType;base64,$base64EncodedImage";
+    }
+
     /**
      * Returns the image description
      *
@@ -789,18 +825,25 @@ WHERE filename = :image';
         try {
             $client = OpenAI::client($this->apiKey);
 
-            $response = $client->chat()->create([
+            $response      = $client->chat()->create([
                 'model'       => $this->modelName,
-                'max_tokens'  => $this->maxTokens,
+                'max_tokens'  => (int)$this->maxTokens,
                 'temperature' => $this->temperature,
                 'messages'    => [
                     [
                         'role'    => 'user',
-                        'content' => $this->prompt,
-                    ],
-                    [
-                        'role'    => 'system',
-                        'content' => 'The image URL is ' . $this->imageUrl,
+                        'content' => [
+                            [
+                                'type' => 'text',
+                                'text' => (string)$this->prompt,
+                            ],
+                            [
+                                'type' => 'image_url',
+                                'image_url' => [
+                                    'url' => $this->imageUrlToBase64DataUrl($this->imageUrl),
+                                ],
+                            ],
+                        ],
                     ],
                 ],
             ]);
@@ -950,8 +993,9 @@ WHERE filename = :image';
     ', ['filename' => $filename]); // No need to escape here
 
         if ($sql->getRows() > 0) {
-            $id_value = (int)$sql->getValue('id');
+            $id_value          = (int)$sql->getValue('id');
             $category_id_value = (int)$sql->getValue('category_id');
+
             return [
                 'file_id'     => $id_value,
                 'category_id' => $category_id_value,
