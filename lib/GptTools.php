@@ -1037,4 +1037,53 @@ WHERE filename = :image';
         return $result;
     }
 
+
+    /**
+     * Parses the slice content, adds missing alt tags to images using mediapool descriptions.
+     *
+     * @param $ep The extension point object
+     *
+     * @return string The modified slice output
+     */
+    function add_missing_alt_tags( $ep)
+    {
+        // Get the slice content and store it
+        $content = $ep->getSubject();
+
+        // Use a DOMDocument to parse the HTML content
+        $dom = new DOMDocument();
+        @$dom->loadHTML($content);
+
+        // Get all img tags within the content
+        $images = $dom->getElementsByTagName('img');
+
+        // Iterate through each image tag
+        foreach ($images as $image) {
+            // Check if the alt attribute exists and is not empty
+            if (!$image->hasAttribute('alt') || empty($image->getAttribute('alt'))) {
+                // Get the image source (src attribute)
+                $imageSrc = $image->getAttribute('src');
+
+                // Extract the mediapool filename from the image source
+                // Assuming the image source is a URL relative to the mediapool
+                $filename = basename($imageSrc);
+
+                // Query the mediapool for the image description
+                $sql = rex_sql::factory();
+                $sql->setQuery('SELECT med_description FROM ' . rex::getTablePrefix() . 'media WHERE filename = ?',
+                    [$filename]);
+
+                // If a description is found in the mediapool
+                if ($sql->getRows() > 0) {
+                    $description = $sql->getValue('med_description');
+                    // Set the alt attribute with the mediapool description
+                    $image->setAttribute('alt', $description);
+                }
+            }
+        }
+
+        // Save the modified HTML and return it for output
+        return $dom->saveHTML();
+    }
+
 }
