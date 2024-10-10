@@ -260,9 +260,14 @@ if ($sql->getRows() > 0) {
         $content     .= '<td>' . ($row->getValue('done') === 1 ? rex_i18n::msg("yes") : rex_i18n::msg("no")) . '</td>';
         $article     = rex_article::get($row->getValue('article_id'), $row->getValue('clang'));
         $articleName = $article->getName();
-        $articleLink = rex_url::backendPage('content/edit',
-            ['article_id' => $row->getValue('article_id'), 'clang' => $row->getValue('clang'), 'mode' => 'edit']);
-        $content     .= '<td><a href="' . $articleLink . '">' . $articleName . '</a></td>';
+        if (null !== $article) {
+            $articleName = $article->getName();
+            $articleLink = rex_url::backendPage('content/edit',
+                ['article_id' => $row->getValue('article_id'), 'clang' => $row->getValue('clang'), 'mode' => 'edit']);
+            $content .= '<td><a href="' . $articleLink . '">' . $articleName . '</a></td>';
+        } else {
+            $content .= '<td>' . rex_i18n::msg('ff_gpt_tools_article_not_found') . '</td>';
+        }
         $content     .= '<td>' . $row->getValue('date') . '</td>';
         $content     .= '<td>' . $row->getValue('meta_description') . '</td>';
         $content     .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
