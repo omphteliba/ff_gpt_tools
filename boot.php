@@ -4,7 +4,7 @@ if (rex_addon::get('cronjob')->isAvailable()) {
     rex_cronjob_manager::registerType(\FactFinder\FfGptTools\lib\FfGptToolsCronjob::class);
 }
 
-rex_extension::register('SLICE_SHOW', static function (rex_extension_point $ep) {
+rex_extension::register('FE_OUTPUT', static function (rex_extension_point $ep) {
     $content = $ep->getSubject();
     $altCache = [];
 
