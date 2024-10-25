@@ -4,53 +4,92 @@ if (rex_addon::get('cronjob')->isAvailable()) {
     rex_cronjob_manager::registerType(\FactFinder\FfGptTools\lib\FfGptToolsCronjob::class);
 }
 
-rex_extension::register('FE_OUTPUT', static function (rex_extension_point $ep) {
-    $content = $ep->getSubject();
-    $altCache = [];
+if (rex::isFrontend()) {
+    rex_extension::register('OUTPUT_FILTER', static function (rex_extension_point $ep) {
+        // Log to confirm the extension is being executed
+        if (rex::isDebugMode()) {
+            rex_logger::logError(1, 'OUTPUT_FILTER extension point reached.', __FILE__, __LINE__);
+        }
 
-    // Use regular expressions to find img tags and add/fix alt attributes
-    $content = preg_replace_callback(
-        '/<img\s*(?![^>]*\balt\s*=[^>]*["\'][^>]*>)([^>]*)>/i', // Matches img tags without alt, with empty alt, or alt without content
-        static function ($matches) use (&$altCache) {
-            $imageSrc = null;
+        $content = $ep->getSubject();
 
-            // Extract image source from src attribute
-            if (preg_match('/src="([^"]*)"/i', $matches[0], $srcMatches)) {
-                $imageSrc = $srcMatches[1];
-            }
+        // Log the content length
+        if (rex::isDebugMode()) {
+            rex_logger::logError(1, 'Content length: ' . strlen($content), __FILE__, __LINE__);
+        }
 
-            $altText = 'No description available'; // Default fallback alt text
+        $altCache = [];
 
-            if ($imageSrc) {
-                // Extract the filename regardless of path prefix (media path, media manager variations)
-                $filename = basename($imageSrc);
+        // Match all img tags
+        $content = preg_replace_callback(
+            '/<img\b[^>]*>/i',
+            static function ($matches) use (&$altCache) {
+                $imgTag = $matches[0];
 
-                // Check cache first
-                if (isset($altCache[$filename])) {
-                    $altText = $altCache[$filename];
-                } else {
-                    // Query database for image description
-                    $sql = rex_sql::factory();
-                    $sql->setQuery('SELECT med_description FROM ' . rex::getTablePrefix() . 'media WHERE filename = ?', [$filename]);
-
-                    // Check if a result is found
-                    if ($sql->getRows() > 0) {
-                        $altText = $sql->getValue('med_description');
+                // Check if alt attribute exists
+                if (preg_match('/\balt\s*=\s*("|\')(.*?)\1/i', $imgTag, $altMatches)) {
+                    $altValue = trim($altMatches[2]);
+                    if ($altValue !== '') {
+                        // Alt attribute exists and is not empty, do not modify
+                        return $imgTag;
                     }
-
-                    // Store result in cache, even if it's empty to avoid re-querying
-                    $altCache[$filename] = $altText;
+                    // Alt attribute exists but is empty, we need to update it
                 }
-            }
 
-            // Return the modified img tag with the alt attribute
-            return '<img alt="' . htmlspecialchars($altText, ENT_QUOTES) . '" ' . $matches[1] . '>';
-        },
-        $content
-    );
+                // Extract image source from src attribute
+                $imageSrc = null;
+                if (preg_match('/\bsrc\s*=\s*["\']([^"\']+)["\']/i', $imgTag, $srcMatches)) {
+                    $imageSrc = $srcMatches[1];
+                }
 
-    return $content;
-});
+                $altText = 'No description available';
+
+                if ($imageSrc) {
+                    $filename = basename($imageSrc);
+
+                    if (isset($altCache[$filename])) {
+                        $altText = $altCache[$filename];
+                    } else {
+                        // Query database for image description
+                        $sql = rex_sql::factory();
+                        $sql->setQuery(
+                            'SELECT med_description FROM ' . rex::getTablePrefix() . 'media WHERE filename = ?',
+                            [$filename]
+                        );
+
+                        if ($sql->hasError()) {
+                            rex_logger::logError(1, 'SQL Error: ' . $sql->getError(), __FILE__, __LINE__);
+                        } elseif ($sql->getRows() > 0) {
+                            $altText = $sql->getValue('med_description');
+                        }
+
+                        $altCache[$filename] = $altText;
+                    }
+                }
+
+                // Remove existing alt attribute if it's empty
+                $imgTag = preg_replace('/\balt\s*=\s*("|\')(.*?)\1/i', '', $imgTag);
+
+                // Add or update the alt attribute
+                $imgTag = preg_replace(
+                    '/<img\b/i',
+                    '<img alt="' . htmlspecialchars($altText, ENT_QUOTES, 'UTF-8') . '"',
+                    $imgTag
+                );
+
+                return $imgTag;
+            },
+            $content
+        );
+
+        return $content;
+    });
+}
+
+
+
+
+
 
 
 
