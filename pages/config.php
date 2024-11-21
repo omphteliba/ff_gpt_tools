@@ -14,17 +14,32 @@ https://redaxo.org/doku/master/konfiguration_form
 
 namespace FactFinder\FfGptTools\pages;
 
+use FactFinder\FfGptTools\lib\GptTools;
 use rex_addon;
 use rex_config_form;
 use rex_view;
 use rex_i18n;
 use rex_fragment;
+use rex_sql;
+use REX;
 
 $addon = rex_addon::get('ff_gpt_tools');
 
 $apiKey = $addon->getConfig('apikey');
 if (empty($apiKey)) {
     echo rex_view::error("Error: API key is missing.");
+}
+
+// Check if Image Meta description field is set and exists in the table
+$image_descriptionfield = $addon->getConfig('image_descriptionfield');
+if (empty($image_descriptionfield)) {
+    echo rex_view::error("Error: Image Meta description field is missing.");
+}
+
+try {
+    GptTools::checkImageDescriptionField($image_descriptionfield);
+} catch (\rex_sql_exception $e) {
+    \rex_logger::logException($e);
 }
 
 $content = '';

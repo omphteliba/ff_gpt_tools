@@ -2,6 +2,7 @@
 
 namespace FactFinder\FfGptTools\lib;
 
+use phpDocumentor\Reflection\Types\Boolean;
 use rex;
 use rex_clang;
 use rex_exception;
@@ -781,10 +782,12 @@ WHERE filename = :image';
      * Converts an image from a given URL to a base64-encoded data URL.
      *
      * @param string $imageUrl The URL of the image.
+     *
      * @return string The base64-encoded data URL, or null if an error occurred.
      */
-    function imageUrlToBase64DataUrl(string $imageUrl): ?string
-    {
+    function imageUrlToBase64DataUrl(
+        string $imageUrl
+    ): ?string {
         // Fetch the image content from the URL.
         $imageContent = @file_get_contents($imageUrl);
 
@@ -792,17 +795,19 @@ WHERE filename = :image';
         if ($imageContent === false) {
             // Handle the error, e.g., by logging it or returning a default image.
             self::logError("Failed to fetch image from URL: $imageUrl");
+
             return null;
         }
 
         // Determine the image's MIME type.
-        $imageInfo = getimagesizefromstring($imageContent);
+        $imageInfo     = getimagesizefromstring($imageContent);
         $imageMimeType = $imageInfo['mime'] ?? null;
 
         // Check if the MIME type could be determined.
         if ($imageMimeType === null) {
             // Handle the error, e.g., by logging it.
             self::logError("Failed to determine MIME type for image: $imageUrl");
+
             return null;
         }
 
@@ -825,7 +830,7 @@ WHERE filename = :image';
         try {
             $client = OpenAI::client($this->apiKey);
 
-            $response      = $client->chat()->create([
+            $response = $client->chat()->create([
                 'model'       => $this->modelName,
                 'max_tokens'  => (int)$this->maxTokens,
                 'temperature' => $this->temperature,
@@ -838,7 +843,7 @@ WHERE filename = :image';
                                 'text' => (string)$this->prompt,
                             ],
                             [
-                                'type' => 'image_url',
+                                'type'      => 'image_url',
                                 'image_url' => [
                                     'url' => $this->imageUrlToBase64DataUrl($this->imageUrl),
                                 ],
@@ -1045,7 +1050,7 @@ WHERE filename = :image';
      *
      * @return string The modified slice output
      */
-    function add_missing_alt_tags( $ep)
+    function add_missing_alt_tags($ep)
     {
         // Get the slice content and store it
         $content = $ep->getSubject();
@@ -1084,6 +1089,37 @@ WHERE filename = :image';
 
         // Save the modified HTML and return it for output
         return $dom->saveHTML();
+    }
+
+    /**
+     * @param mixed $image_descriptionfield
+     *
+     * @return bool
+     * @throws \rex_sql_exception
+     */
+    public static function checkImageDescriptionField(mixed $image_descriptionfield): bool
+    {
+        // check if the field that is defined in $image_descriptionfield exists in the table rex_media
+        $sql = rex_sql::factory();
+        // Check if the table exists (Corrected logic)
+        $sql->setQuery("SHOW TABLES LIKE '" . REX::getTable('media') . "'");
+        $tableExists = $sql->getRows() > 0; // Check if ANY rows were returned
+
+        if ($tableExists) {
+            // Check if the field exists
+            $query = "SHOW COLUMNS FROM `" . REX::getTable('media') . "` LIKE '$image_descriptionfield'";
+            $sql->setQuery($query);
+            $fieldExists = $sql->getRows() > 0;
+            if (!$fieldExists) {
+                echo \rex_view::error("The field '$image_descriptionfield' does NOT exist in the table '" . REX::getTable('media') . "'.");
+                return false;
+            }
+        } else {
+            echo \rex_view::error("The table '" . REX::getTable('media') . "' does not exist.");
+            return false;
+        }
+
+        return true;
     }
 
 }

@@ -3,7 +3,7 @@
 # Alle hier gesetzten Werte können über `$addon->getProperty($key)` abgefragt werden
 
 package: ff_gpt_tools # Pflichtfeld
-version: "0.5" # Pflichtfeld
+version: "0.6" # Pflichtfeld
 author: omphteliba # Pflichtfeld für FOR-AddOns
 supportpage: https://github.com/omphteliba/ff_gpt_tools # Github-Adresse des AddOns
 

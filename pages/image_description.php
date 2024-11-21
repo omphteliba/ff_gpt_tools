@@ -47,6 +47,21 @@ if (empty($apiKey)) {
     die();
 }
 
+// Check if Image Meta description field is set and exists in the table
+$image_descriptionfield = $addon->getConfig('image_descriptionfield');
+if (empty($image_descriptionfield)) {
+    echo rex_view::error("Error: Image Meta description field is missing.");
+    die();
+}
+
+try {
+    if (!GptTools::checkImageDescriptionField($image_descriptionfield)) {
+        die();
+    }
+} catch (\rex_sql_exception $e) {
+    \rex_logger::logException($e);
+}
+
 $clangId = filter_var(rex_be_controller::getCurrentPagePart(3), FILTER_SANITIZE_NUMBER_INT);
 //$prompt_default = 'Act as an SEO specialist with ten years of experience. Please summarize this article in $prompt_lang in 18 words or less for the image-description of a website: $prompt_content';
 
