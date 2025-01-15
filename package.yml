@@ -3,7 +3,7 @@
 # Alle hier gesetzten Werte können über `$addon->getProperty($key)` abgefragt werden
 
 package: ff_gpt_tools # Pflichtfeld
-version: "0.9" # Pflichtfeld
+version: "0.91" # Pflichtfeld
 author: omphteliba # Pflichtfeld für FOR-AddOns
 supportpage: https://github.com/omphteliba/ff_gpt_tools # Github-Adresse des AddOns
 
@@ -33,9 +33,6 @@ page:
             title: 'translate:order_medienpool'
             perm: ff_gpt_tools[order_medienpool] # Das AddOn-Benutzerrecht `order_medienpool` ist für diese Unterseite erforderlich. Admins haben alle Rechte.
             icon: rex-icon fa-sort-numeric-asc
-        api:
-            title: 'translate:api'
-            icon: rex-icon fa-cogs
         config:
             title: "translate:config"
             perm: ff_gpt_tools[config] # Das noch spezifischere AddOn-Benutzerrecht `config` ist für diese Unterseite erforderlich. Admins haben alle Rechte.
