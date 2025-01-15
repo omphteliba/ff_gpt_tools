@@ -222,6 +222,23 @@ class GptTools
     }
 
     /**
+     * @param      $sqlObject
+     * @param      $tableName
+     * @param      $articleId
+     * @param      $clang
+     * @param null $message
+     *
+     * @return void
+     */
+    public static function updateImageErrorFlag($tableName, $imageUrl, $message = null): void
+    {
+        $sqlObject = rex_sql::factory();
+        $sqlObject->setDebug(true);
+        $updateSql = "UPDATE $tableName SET error_flag = 1, error_text = ? WHERE image_url = ? ";
+        $sqlObject->setQuery($updateSql, [$message, $imageUrl]);
+    }
+
+    /**
      * Remove HTML entities from a string
      *
      * @param string $string
@@ -855,9 +872,9 @@ WHERE filename = :image';
 
             return $response['choices'][0]['message']['content'];// Return the meta-description
         } catch (Exception $e) {
-            rex_logger::logError(1, 'Failed to fetch meta-description from OpenAI: ' . $e->getMessage(), __FILE__,
-                __LINE__);
-
+            $errstr = 'Failed to fetch meta-description from OpenAI: ' . $e->getMessage();
+            rex_logger::logError(1, $errstr, __FILE__, __LINE__);
+            self::updateImageErrorFlag(rex::getTable($this->ffgptdatabase), $this->imageUrl, $errstr); // Return error message
             return '';
         }
     }
@@ -1112,14 +1129,116 @@ WHERE filename = :image';
             $fieldExists = $sql->getRows() > 0;
             if (!$fieldExists) {
                 echo \rex_view::error("The field '$image_descriptionfield' does NOT exist in the table '" . REX::getTable('media') . "'.");
+
                 return false;
             }
         } else {
             echo \rex_view::error("The table '" . REX::getTable('media') . "' does not exist.");
+
             return false;
         }
 
         return true;
     }
+
+    // Organze items in the rex_media database that have 0 in the category_id column. Have a look at the rex_media_category table to find a fitting category or create a new one.
+
+    /**
+     * Organizes media items with category_id 0 by assigning them to a suitable category or creating a new one.
+     *
+     * @return string
+     * @throws \rex_sql_exception
+     */
+    public function organizeMediaItems(): string
+    {
+        $out = '';
+        $sql = rex_sql::factory();
+        $sql->setQuery('SELECT filename FROM ' . rex::getTable('media') . ' WHERE category_id = 0');
+
+        while ($sql->hasNext()) {
+            $filename   = $sql->getValue('filename');
+            $categoryId = $this->findOrCreateCategoryForMedia($filename);
+
+            if ($categoryId) {
+                $updateSql = rex_sql::factory();
+                $updateSql->setQuery('UPDATE ' . rex::getTable('media') . ' SET category_id = ? WHERE filename = ?',
+                    [$categoryId, $filename]);
+                $out .=  "Media item '$filename' assigned to category ID $categoryId.". PHP_EOL;
+            } else {
+                $out .= "Could not find or create a category for media item '$filename'." . PHP_EOL;
+            }
+
+            $sql->next();
+        }
+
+        return $out;
+    }
+
+    /**
+     * Finds or creates a suitable category for a media item using ChatGPT based on its filename.
+     *
+     * @param string $filename The filename of the media item.
+     *
+     * @return int|null The ID of the category, or null if no suitable category could be found or created.
+     * @throws \rex_exception
+     */
+    private function findOrCreateCategoryForMedia(string $filename): ?int
+    {
+        $suggestedCategoryName = $this->suggestCategoryNameWithChatGPT($filename);
+
+        if ($suggestedCategoryName === null) {
+            rex_logger::logError(2, "ChatGPT could not suggest a category name for '$filename'.", __FILE__, __LINE__);
+            return null; // or fallback to a default category
+        }
+
+
+        $sql = rex_sql::factory();
+        $sql->setQuery('SELECT id FROM ' . rex::getTable('media_category') . ' WHERE name = ?', [$suggestedCategoryName]);
+
+        if ($sql->getRows() > 0) {
+            return (int)$sql->getValue('id');
+        }
+
+        $createSql = rex_sql::factory();
+        $createSql->setTable(rex::getTable('media_category'));
+        $createSql->setValue('name', $suggestedCategoryName);
+        $createSql->insert();
+
+        return (int)$createSql->getLastId();
+    }
+
+    /**
+     * Suggests a category name using ChatGPT based on the given filename.
+     *
+     * @param string $filename The filename of the media item.
+     *
+     * @return string|null The suggested category name, or null if the API call fails.
+     * @throws \rex_exception
+     */
+    private function suggestCategoryNameWithChatGPT(string $filename): ?string
+    {
+        try {
+            $client = OpenAI::client($this->apiKey);
+
+            $prompt = "Suggest a concise and relevant category name for a media file named '$filename'.";
+
+            $response = $client->chat()->create([
+                'model' => $this->modelName,  // Use your preferred model
+                'messages' => [
+                    ['role' => 'user', 'content' => $prompt],
+                ],
+            ]);
+
+            $suggestedName = trim($response['choices'][0]['message']['content']);
+            rex_logger::logError(2, "ChatGPT suggested category: '$suggestedName' for '$filename'.", __FILE__, __LINE__);
+
+            return $suggestedName;
+
+        } catch (Exception $e) {
+            rex_logger::logException($e);
+            return null;
+        }
+    }
+
 
 }

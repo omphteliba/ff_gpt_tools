@@ -17,19 +17,16 @@ use rex_logger;
 use rex_view;
 use rex_i18n;
 use rex_path;
-use rex_exception;
 use rex_be_controller;
 use rex_url;
 use rex_sql;
 use rex_sql_exception;
 use rex_csrf_token;
 use rex_clang;
-use rex_extension_point;
 use rex_select;
 use rex_var_media;
 use rex_var_medialist;
 use rex_media;
-use rex_media_manager;
 
 $addon_name = 'ff_gpt_tools';
 $addon      = rex_addon::get($addon_name);
@@ -37,7 +34,7 @@ require_once rex_path::addon($addon_name, 'vendor/autoload.php');
 require_once rex_path::addon($addon_name, 'lib/GptTools.php');
 
 $valid_fileextensions = ['jpg', 'jpeg', 'png', 'webp', 'svg'];
-$valid_filetypes =['image/webp', 'image/svg+xml', 'image/jpeg', 'image/png'];
+$valid_filetypes      = ['image/webp', 'image/svg+xml', 'image/jpeg', 'image/png'];
 
 $table_name = rex::getTable('ff_gpt_tools_tasks');
 
@@ -65,12 +62,12 @@ try {
 $clangId = filter_var(rex_be_controller::getCurrentPagePart(3), FILTER_SANITIZE_NUMBER_INT);
 //$prompt_default = 'Act as an SEO specialist with ten years of experience. Please summarize this article in $prompt_lang in 18 words or less for the image-description of a website: $prompt_content';
 
-if ($addon->getConfig('image_prompt')!== '') {
+if ($addon->getConfig('image_prompt') !== '') {
     $prompt_default = $addon->getConfig('image_prompt');
 } else {
     $prompt_default = 'Act as an SEO specialist with ten years of experience in accessibility. Generate a descriptive ALT tag for the provided image. Ensure the description is clear, concise, and accurately represents the content and context of the image. Include relevant keywords without compromising the clarity needed for accessibility. Language: $prompt_lang. Limit the description to 18 words or less.';
 }
-$content        = '';
+$content = '';
 
 $csrfToken = rex_csrf_token::factory('gpt-tools');
 $generate  = rex_post('generate', 'bool');
@@ -91,7 +88,8 @@ if ($generate && !$csrfToken->isValid()) {
             $articles = rex_sql::factory();
             $articles->setDebug(false);
             $description_field = $addon->getConfig('descriptionfield');
-            $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE filetype IN ("' . implode('", "', $valid_filetypes) . '");';
+            $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE filetype IN ("' . implode('", "',
+                    $valid_filetypes) . '");';
 
             try {
                 $articles->setQuery($query);
@@ -122,7 +120,8 @@ if ($generate && !$csrfToken->isValid()) {
             $articles = rex_sql::factory();
             $articles->setDebug(false);
             $description_field = $articles->escapeIdentifier($addon->getConfig('image_descriptionfield'));
-            $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE ' . $description_field . ' = "" AND filetype IN ("' . implode('", "', $valid_filetypes) . '")';
+            $query             = 'SELECT id, filename FROM ' . rex::getTable('media') . ' WHERE ' . $description_field . ' = "" AND filetype IN ("' . implode('", "',
+                    $valid_filetypes) . '")';
 
             try {
                 $articles->setQuery($query);
@@ -145,6 +144,7 @@ if ($generate && !$csrfToken->isValid()) {
             }
             break;
         case 2: // one image
+            rex_logger::logError(2, 'single_image: ', __FILE__, __LINE__);
             $content .= rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_select_one') . '</br>' . PHP_EOL;
             foreach ($languages as $language) {
                 $result[] = array(
@@ -217,7 +217,7 @@ if ($content) {
 if (rex_get('func') === 'cronjob') {
 //    $cronjob = new \FactFinder\FfGptTools\lib\FfGptToolsCronjob();
 //    $cronjob->execute();
-    $gpttool = new GptTools('ff_gpt_tools');
+    $gpttool               = new GptTools('ff_gpt_tools');
     $processedImageEntries = $gpttool->processImageEntries();
 }
 
@@ -281,9 +281,10 @@ if ($sql->getRows() > 0) {
     $content .= '<tbody>';
 
     foreach ($sql as $row) {
-        $mediaFolderPath = rex_url::media(); // Get the path to the media folder
+        $mediaFolderPath     = rex_url::media(); // Get the path to the media folder
         $filename            = $sql->getValue('image_url'); // Get the filename with the media folder path
-        $filenameWithoutPath = str_replace($mediaFolderPath, '', $filename); // Remove the media folder path from the filename
+        $filenameWithoutPath = str_replace($mediaFolderPath, '',
+            $filename); // Remove the media folder path from the filename
         // ToDO: Abfangen wenn das Ergebnis leer ist. Dann muss ich auch den rest nicht ausgeben, denke ich. Bin mir aber nicht sicher, weil schon so spät und heiss.
         $mediaData = GptTools::getMediaDataByFilename($filenameWithoutPath);
         $content   .= '<tr>';
@@ -292,7 +293,7 @@ if ($sql->getRows() > 0) {
         $media = rex_media::get($filenameWithoutPath);
 
         if ($media) { // Check if media object was found
-            $fileInfo = pathinfo($media->getFileName());
+            $fileInfo      = pathinfo($media->getFileName());
             $fileExtension = strtolower($fileInfo['extension']);
 
             if (in_array($fileExtension, $valid_fileextensions)) {
@@ -304,12 +305,12 @@ if ($sql->getRows() > 0) {
             // Handle case where media object was not found (e.g., invalid file_id)
             $content .= '<td>-</td>'; // Or display an error message
         }
-        $content   .= '<td>' . $row->getValue('date') . '</td>';
-        $content   .= '<td>' . $row->getValue('meta_description') . '</td>';
-        $content   .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
-        $content   .= '<td>' . $row->getValue('prompt') . '</td>';
-        $content   .= '<td>' . $row->getValue('model') . '</td>';
-        $content   .= '<td>' . $row->getValue('error_text') . '</td>';
+        $content .= '<td>' . $row->getValue('date') . '</td>';
+        $content .= '<td>' . $row->getValue('meta_description') . '</td>';
+        $content .= '<td>' . rex_clang::get($row->getValue('clang'))->getName() . '</td>';
+        $content .= '<td>' . $row->getValue('prompt') . '</td>';
+        $content .= '<td>' . $row->getValue('model') . '</td>';
+        $content .= '<td>' . $row->getValue('error_text') . '</td>';
         // show the copy button only when image_description isn't empty
         if ($row->getValue('meta_description') !== '') {
             $content .= '<td><a href="' . rex_url::currentBackendPage([
@@ -454,7 +455,7 @@ $languages = rex_clang::getAll();
 
 foreach ($languages as $language) {
     $langSelect->addOption($language->getName(), $language->getId());
-    if ($language->getName() === 'english') {
+    if ($language->getId() === rex_clang::getCurrentId()) {
         $langSelect->setSelected($language->getId());
     }
 }

@@ -17,14 +17,12 @@ use rex_logger;
 use rex_view;
 use rex_i18n;
 use rex_path;
-use rex_exception;
 use rex_be_controller;
 use rex_url;
 use rex_sql;
 use rex_sql_exception;
 use rex_csrf_token;
 use rex_clang;
-use rex_extension_point;
 use rex_select;
 use rex_var_link;
 use rex_var_linklist;
@@ -416,7 +414,7 @@ $languages = rex_clang::getAll();
 
 foreach ($languages as $language) {
     $langSelect->addOption($language->getName(), $language->getId());
-    if ($language->getName() === 'english') {
+    if ($language->getName() ===  rex_clang::getCurrentId()) {
         $langSelect->setSelected($language->getId());
     }
 }

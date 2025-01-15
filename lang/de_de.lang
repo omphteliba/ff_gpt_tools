@@ -14,6 +14,7 @@ ff_gpt_tools_apikey = API Key
 
 ff_gpt_tools_meta_generate = Meta Beschreibung
 ff_gpt_tools_image_description = Bild Beschreibung
+ff_gpt_tools_order_medienpool = Medienpool aufräumen
 
 ff_gpt_tools_tasks = Aufgaben
 
@@ -99,3 +100,17 @@ ff_gpt_tools_generate_image_descriptions_pages_articlelist = Bild Liste
 
 ff_gpt_tools_image_url = Bild URL
 ff_gpt_tools_image = Bild
+
+ff_gpt_tools_organize_mediapool = Medienpool aufräumen
+ff_gpt_tools_organize_mediapool_information = Information
+ff_gpt_tools_organize_mediapool_intro = Mit diesem Tool können Sie Dateien aus dem Medienpool ohne Kategorie einer bestehenden oder neuen Kategorie zuordnen.
+ff_gpt_tools_organize_mediapool_config_legend = Einstellungen für die Medienpool Aufräumung
+ff_gpt_tools_organize_mediapool_prompt = Prompt
+ff_gpt_tools_organize_mediapool_prompt_note = Der Prompt, der dem Modell hilft, die Dateien im Medienpool zu kategorisieren.
+ff_gpt_tools_organize_mediapool_model_name = Model Name
+ff_gpt_tools_organize_mediapool_temperature = Temperatur
+ff_gpt_tools_organize_mediapool_temperature_note = Zwischen 0 und 1. Höhere Werte bedeuten, dass das Modell mehr Risiken eingehen wird. Empfohlener Wert: 0.7
+ff_gpt_tools_organize_mediapool_max_tokens = Tokens
+ff_gpt_tools_organize_mediapool_max_tokens_note = Die maximale Anzahl der zu erzeugenden Token. Das Modell hört auf zu generieren, sobald es dieses Limit erreicht. Empfohlener Wert: 50
+ff_gpt_tools_organize_mediapool_submit_button = Aufräumen
+ff_gpt_tools_organize_prompt = Prompt fürs Aufräumen des Medienpools

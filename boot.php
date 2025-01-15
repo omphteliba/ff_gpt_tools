@@ -6,18 +6,7 @@ if (rex_addon::get('cronjob')->isAvailable()) {
 
 if (rex::isFrontend()) {
     rex_extension::register('OUTPUT_FILTER', static function (rex_extension_point $ep) {
-        // Log to confirm the extension is being executed
-        if (rex::isDebugMode()) {
-            rex_logger::logError(1, 'OUTPUT_FILTER extension point reached.', __FILE__, __LINE__);
-        }
-
         $content = $ep->getSubject();
-
-        // Log the content length
-        if (rex::isDebugMode()) {
-            rex_logger::logError(1, 'Content length: ' . strlen($content), __FILE__, __LINE__);
-        }
-
         $altCache = [];
 
         // Match all img tags

@@ -79,6 +79,9 @@ $field = $form->addTextAreaField('image_prompt', $addon->getConfig('image_prompt
     ['class' => 'form-control']);
 $field->setLabel(rex_i18n::msg('ff_gpt_tools_image_prompt'));
 
+$field = $form->addTextAreaField('organize_prompt', $addon->getConfig('organize_prompt'),
+    ['class' => 'form-control']);
+$field->setLabel(rex_i18n::msg('ff_gpt_tools_organize_prompt'));
 
 // Ausgabe des Formulars
 $fragment = new rex_fragment();
