@@ -414,7 +414,7 @@ $languages = rex_clang::getAll();
 
 foreach ($languages as $language) {
     $langSelect->addOption($language->getName(), $language->getId());
-    if ($language->getName() ===  rex_clang::getCurrentId()) {
+    if ($language->getId() ===  rex_clang::getCurrentId()) {
         $langSelect->setSelected($language->getId());
     }
 }
