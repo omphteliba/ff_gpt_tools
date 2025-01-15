@@ -693,7 +693,10 @@ WHERE filename = :image';
 
         $main = $dom->getElementsByTagName('main')->item(0);
         if ($main === null) {
-            return ''; // Return empty string if <main> is not found
+            $main = $dom->getElementsByTagName('body')->item(0);
+            if ($main === null) {
+                return ''; // Return empty string if <main> and <body> are not found
+            }
         }
 
         $this->removeTags($main, 'script');
