@@ -66,6 +66,15 @@ if ($generate && !$csrfToken->isValid()) {
     $languages = rex_post('language', 'array');
     $func      = rex_post('func', 'int');
 
+    // Check if a page or language is selected based on the chosen option
+    if (empty($languages)) {
+        $error = rex_i18n::msg('ff_gpt_tools_error_no_language_selected');
+    } elseif ($func == 2 && empty(rex_post('single_article', 'int'))) {
+        $error = rex_i18n::msg('ff_gpt_tools_error_no_article_selected');
+    } elseif ($func == 3 && empty(rex_post('article_list', 'string'))) {
+        $error = rex_i18n::msg('ff_gpt_tools_error_no_article_list_provided');
+    }
+
     // switch for variable func
     switch ($func) {
         case 0: // all pages
@@ -182,7 +191,11 @@ if ($generate && !$csrfToken->isValid()) {
     }
 }
 
-if ($content) {
+if ($error) { // Display error if any
+    echo rex_view::error($error);
+}
+
+if ($content && !$error) {
     $fragment = new rex_fragment();
     $fragment->setVar('title', 'api-Output', false);
     $fragment->setVar('body', $content, false);
@@ -504,10 +517,10 @@ $fragment->setVar('buttons', $buttons, false);
 $content = $fragment->parse('core/page/section.php');
 
 $content = '
-<form action="' . rex_url::currentBackendPage() . '" data-pjax="false" method="post">
+<form id="gpt_tools_meta_generate" action="' . rex_url::currentBackendPage() . '" data-pjax="false" method="post">
     ' . $csrfToken->getHiddenField() . '
     ' . $content . '
 </form>';
 
 echo $content;
-echo '<script src="' . rex_url::addonAssets('ff_gpt_tools') . 'be_meta_generate.js' . '"></script>';
+echo '<script src="' . rex_url::addonAssets('ff_gpt_tools') . 'be_meta_generate.js?v=2' . '"></script>';

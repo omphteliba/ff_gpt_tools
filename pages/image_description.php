@@ -545,7 +545,7 @@ $fragment->setVar('buttons', $buttons, false);
 $content = $fragment->parse('core/page/section.php');
 
 $content = '
-<form action="' . rex_url::currentBackendPage() . '" data-pjax="false" method="post">
+<form id="gpt_tools_image_description" action="' . rex_url::currentBackendPage() . '" data-pjax="false" method="post">
     ' . $csrfToken->getHiddenField() . '
     ' . $content . '
 </form>';
