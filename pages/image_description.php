@@ -144,7 +144,6 @@ if ($generate && !$csrfToken->isValid()) {
             }
             break;
         case 2: // one image
-            rex_logger::logError(2, 'single_image: ', __FILE__, __LINE__);
             $content .= rex_i18n::msg('ff_gpt_tools_generate_image_descriptions_pages_select_one') . '</br>' . PHP_EOL;
             foreach ($languages as $language) {
                 $result[] = array(

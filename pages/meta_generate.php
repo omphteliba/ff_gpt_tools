@@ -56,6 +56,7 @@ $content = '';
 
 $csrfToken = rex_csrf_token::factory('gpt-tools');
 $generate  = rex_post('generate', 'bool');
+$error     = '';
 
 if ($generate && !$csrfToken->isValid()) {
     $error = rex_i18n::msg('ff_gpt_tools_csrf_token_invalid');
@@ -191,7 +192,7 @@ if ($generate && !$csrfToken->isValid()) {
     }
 }
 
-if ($error) { // Display error if any
+if (isset($error) && $error) { // Display error if any
     echo rex_view::error($error);
 }
 
