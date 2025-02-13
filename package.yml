@@ -47,7 +47,7 @@ requires:
         media_manager: ">=2.0" # benötigt mindestens Media Manager 2.0
     php:
         version: ">=8.1" # benötigt mindestens PHP 8.1
-        extensions: [ gd, xml ] # benötigt die PHP-Extensions GDlib und XML
+        extensions: [ gd, xml, fileinfo ] # benötigt die PHP-Extensions GDlib und XML
 
 configvars:
     apikey:

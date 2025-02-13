@@ -33,8 +33,8 @@ $addon      = rex_addon::get($addon_name);
 require_once rex_path::addon($addon_name, 'vendor/autoload.php');
 require_once rex_path::addon($addon_name, 'lib/GptTools.php');
 
-$valid_fileextensions = ['jpg', 'jpeg', 'png', 'webp']; // , 'svg' geht zzt nicht
-$valid_filetypes      = ['image/webp', 'image/jpeg', 'image/png']; // 'image/svg+xml',  geht zzt nicht
+$valid_fileextensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+$valid_filetypes      = ['image/webp', 'image/jpeg','image/gif', 'image/png'];
 
 $table_name = rex::getTable('ff_gpt_tools_tasks');
 

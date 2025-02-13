@@ -819,10 +819,13 @@ WHERE filename = :image';
             return null;
         }
 
-        // Determine the image's MIME type.
-        $imageInfo     = getimagesizefromstring($imageContent);
-        $imageMimeType = $imageInfo['mime'] ?? null;
-
+        // Determine the image's MIME type. This is necessary for the data URL.
+        if (strpos($imageUrl, '.svg') !== false) {
+            $imageMimeType = 'image/svg+xml';
+        } else {
+            $imageInfo     = getimagesizefromstring($imageContent);
+            $imageMimeType = $imageInfo['mime'] ?? null;
+        }
         // Check if the MIME type could be determined.
         if ($imageMimeType === null) {
             // Handle the error, e.g., by logging it.
@@ -847,10 +850,15 @@ WHERE filename = :image';
      */
     public function getImageDescription(): string
     {
+        $imageUrlToBase64DataUrl = $this->imageUrlToBase64DataUrl($this->imageUrl);
+        if ($imageUrlToBase64DataUrl === null) {
+            rex_logger::logError(1, "imageUrlToBase64DataUrl for " . $this->imageUrl . "is NULL", __FILE__, __LINE__);
+            return '';
+        }
         try {
             $client = OpenAI::client($this->apiKey);
 
-            $response = $client->chat()->create([
+            $response                = $client->chat()->create([
                 'model'       => $this->modelName,
                 'max_tokens'  => (int)$this->maxTokens,
                 'temperature' => $this->temperature,
@@ -865,7 +873,7 @@ WHERE filename = :image';
                             [
                                 'type'      => 'image_url',
                                 'image_url' => [
-                                    'url' => $this->imageUrlToBase64DataUrl($this->imageUrl),
+                                    'url' => $imageUrlToBase64DataUrl,
                                 ],
                             ],
                         ],
