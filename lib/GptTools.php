@@ -233,6 +233,7 @@ class GptTools
     public static function updateImageErrorFlag($tableName, $imageUrl, $message = null): void
     {
         $sqlObject = rex_sql::factory();
+        $tableName = $sqlObject->escape($tableName);
         $sqlObject->setDebug(true);
         $updateSql = "UPDATE $tableName SET error_flag = 1, error_text = ? WHERE image_url = ? ";
         $sqlObject->setQuery($updateSql, [$message, $imageUrl]);
