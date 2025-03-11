@@ -5,6 +5,7 @@ ff_gpt_tools_config = Einstellungen
 ff_gpt_tools_api = API
 ff_gpt_tools_descriptionfield = DB Feld für SEO Description (REDAXO)
 ff_gpt_tools_image_descriptionfield = DB Feld für Image Description (REDAXO)
+ff_gpt_tools_tasks_per_call = Anzahl der Prompts pro OpenAI Aufruf
 ff_gpt_tools_image_prompt = Prompt für Bildbeschreibung
 ff_gpt_tools_meta_prompt = Prompt für Meta Beschreibung
 

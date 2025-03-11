@@ -71,6 +71,10 @@ $field = $form->addInputField('text', 'image_descriptionfield', $addon->getConfi
     ['class' => 'form-control']);
 $field->setLabel(rex_i18n::msg('ff_gpt_tools_image_descriptionfield'));
 
+$field = $form->addInputField('text', 'tasks_per_call', $addon->getConfig('tasks_per_call'),
+    ['class' => 'form-control']);
+$field->setLabel(rex_i18n::msg('ff_gpt_tools_tasks_per_call'));
+
 $field = $form->addTextAreaField('meta_prompt', $addon->getConfig('meta_prompt'),
     ['class' => 'form-control']);
 $field->setLabel(rex_i18n::msg('ff_gpt_tools_meta_prompt'));

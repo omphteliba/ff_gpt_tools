@@ -232,6 +232,9 @@ class GptTools
      */
     public static function updateImageErrorFlag($tableName, $imageUrl, $message = null): void
     {
+        // remove protocoll and rex_server url from $imageUrl
+        $imageUrl = str_replace(rex::getServer(), '', $imageUrl);
+
         $sqlObject = rex_sql::factory();
         $tableName = $sqlObject->escape($tableName);
         $sqlObject->setDebug(true);
@@ -537,6 +540,11 @@ class GptTools
         $this->addon_name = $addon_name;
         // Fetching and setting the API key
         $this->apiKey = rex_addon::get($this->addon_name)->getConfig('apikey');
+        $maxEntries = (int) \rex_addon::get($this->addon_name)->getConfig('apikey');
+
+        if (isset($maxEntries) && $maxEntries > 0) {
+            $this->setMaxEntriesProcessed($maxEntries);
+        }
 
         if (empty($this->apiKey)) {
             throw new \InvalidArgumentException("API key must be configured and cannot be empty.");

@@ -91,6 +91,11 @@ class FfGptToolsCronjob extends rex_cronjob
     {
         $message = "Cronjob executed. " . PHP_EOL;
         $gpttool = new GptTools('ff_gpt_tools');
+        $maxEntries = (int)\rex_addon::get($this->addon_name)->getConfig('apikey');
+
+        if (isset($maxEntries) && $maxEntries > 0) {
+            $this->setMaxEntriesProcessed($maxEntries);
+        }
 
         try {
             // Meta Description processing
