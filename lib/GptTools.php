@@ -234,12 +234,17 @@ class GptTools
     {
         // remove protocoll and rex_server url from $imageUrl
         $imageUrl = str_replace(rex::getServer(), '', $imageUrl);
-
+        $imageUrl = '..' . $imageUrl;
         $sqlObject = rex_sql::factory();
-        $tableName = $sqlObject->escape($tableName);
+        // Use backticks for table name
+        $tableName = '`' . str_replace('`', '``', $tableName) . '`'; //escape backticks, and add backticks.
+
         $sqlObject->setDebug(true);
         $updateSql = "UPDATE $tableName SET error_flag = 1, error_text = ? WHERE image_url = ? ";
-        $sqlObject->setQuery($updateSql, [$message, $imageUrl]);
+        $sqlObject->setQuery($updateSql, [
+            $message,
+            $imageUrl,
+        ]);
     }
 
     /**
@@ -540,7 +545,7 @@ class GptTools
         $this->addon_name = $addon_name;
         // Fetching and setting the API key
         $this->apiKey = rex_addon::get($this->addon_name)->getConfig('apikey');
-        $maxEntries = (int) \rex_addon::get($this->addon_name)->getConfig('apikey');
+        $maxEntries   = (int)\rex_addon::get($this->addon_name)->getConfig('apikey');
 
         if (isset($maxEntries) && $maxEntries > 0) {
             $this->setMaxEntriesProcessed($maxEntries);
@@ -862,12 +867,13 @@ WHERE filename = :image';
         $imageUrlToBase64DataUrl = $this->imageUrlToBase64DataUrl($this->imageUrl);
         if ($imageUrlToBase64DataUrl === null) {
             rex_logger::logError(1, "imageUrlToBase64DataUrl for " . $this->imageUrl . "is NULL", __FILE__, __LINE__);
+
             return '';
         }
         try {
             $client = OpenAI::client($this->apiKey);
 
-            $response                = $client->chat()->create([
+            $response = $client->chat()->create([
                 'model'       => $this->modelName,
                 'max_tokens'  => (int)$this->maxTokens,
                 'temperature' => $this->temperature,
@@ -894,7 +900,9 @@ WHERE filename = :image';
         } catch (Exception $e) {
             $errstr = 'Failed to fetch meta-description from OpenAI: ' . $e->getMessage();
             rex_logger::logError(1, $errstr, __FILE__, __LINE__);
-            self::updateImageErrorFlag(rex::getTable($this->ffgptdatabase), $this->imageUrl, $errstr); // Return error message
+            self::updateImageErrorFlag(rex::getTable($this->ffgptdatabase), $this->imageUrl,
+                $errstr); // Return error message
+
             return '';
         }
     }
@@ -1183,7 +1191,7 @@ WHERE filename = :image';
                 $updateSql = rex_sql::factory();
                 $updateSql->setQuery('UPDATE ' . rex::getTable('media') . ' SET category_id = ? WHERE filename = ?',
                     [$categoryId, $filename]);
-                $out .=  "Media item '$filename' assigned to category ID $categoryId.". PHP_EOL;
+                $out .= "Media item '$filename' assigned to category ID $categoryId." . PHP_EOL;
             } else {
                 $out .= "Could not find or create a category for media item '$filename'." . PHP_EOL;
             }
@@ -1208,12 +1216,14 @@ WHERE filename = :image';
 
         if ($suggestedCategoryName === null) {
             rex_logger::logError(2, "ChatGPT could not suggest a category name for '$filename'.", __FILE__, __LINE__);
+
             return null; // or fallback to a default category
         }
 
 
         $sql = rex_sql::factory();
-        $sql->setQuery('SELECT id FROM ' . rex::getTable('media_category') . ' WHERE name = ?', [$suggestedCategoryName]);
+        $sql->setQuery('SELECT id FROM ' . rex::getTable('media_category') . ' WHERE name = ?',
+            [$suggestedCategoryName]);
 
         if ($sql->getRows() > 0) {
             return (int)$sql->getValue('id');
@@ -1243,19 +1253,21 @@ WHERE filename = :image';
             $prompt = "Suggest a concise and relevant category name for a media file named '$filename'.";
 
             $response = $client->chat()->create([
-                'model' => $this->modelName,  // Use your preferred model
+                'model'    => $this->modelName,  // Use your preferred model
                 'messages' => [
                     ['role' => 'user', 'content' => $prompt],
                 ],
             ]);
 
             $suggestedName = trim($response['choices'][0]['message']['content']);
-            rex_logger::logError(2, "ChatGPT suggested category: '$suggestedName' for '$filename'.", __FILE__, __LINE__);
+            rex_logger::logError(2, "ChatGPT suggested category: '$suggestedName' for '$filename'.", __FILE__,
+                __LINE__);
 
             return $suggestedName;
 
         } catch (Exception $e) {
             rex_logger::logException($e);
+
             return null;
         }
     }
