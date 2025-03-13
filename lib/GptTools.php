@@ -97,6 +97,22 @@ class GptTools
      */
     protected int $maxEntriesProcessed = 10;
 
+    private string $apiMaxTokenString = 'max_tokens';
+
+    public function getApiMaxTokenString(): string
+    {
+        return $this->apiMaxTokenString;
+    }
+
+    public function setApiMaxTokenString(string $apiMaxTokenString = 'max_tokens'): void
+    {
+        $this->apiMaxTokenString = $apiMaxTokenString;
+        // if $this->modelname has o1 or o3 in it then set it to 'max_completion_tokens'
+        if (strpos($this->modelName, 'o1') !== false || strpos($this->modelName, 'o3') !== false) {
+            $this->apiMaxTokenString = 'max_completion_tokens';
+        }
+    }
+
     /**
      * @param $sqlObject
      * @param $gptTools
@@ -108,6 +124,7 @@ class GptTools
     public static function processSingleMetaEntry($sqlObject, $gptTools, $tableName): bool
     {
         $gptTools->setModelName($sqlObject->getValue('model'));
+        $gptTools->setApiMaxTokenString();
         $clang     = $sqlObject->getValue('clang');
         $clangName = rex_clang::get($clang)?->getName();
         $articleId = $sqlObject->getValue('article_id');
@@ -233,13 +250,13 @@ class GptTools
     public static function updateImageErrorFlag($tableName, $imageUrl, $message = null): void
     {
         // remove protocoll and rex_server url from $imageUrl
-        $imageUrl = str_replace(rex::getServer(), '', $imageUrl);
-        $imageUrl = '..' . $imageUrl;
+        $imageUrl  = str_replace(rex::getServer(), '', $imageUrl);
+        $imageUrl  = '..' . $imageUrl;
         $sqlObject = rex_sql::factory();
         // Use backticks for table name
         $tableName = '`' . str_replace('`', '``', $tableName) . '`'; //escape backticks, and add backticks.
 
-        $sqlObject->setDebug(true);
+        $sqlObject->setDebug(false);
         $updateSql = "UPDATE $tableName SET error_flag = 1, error_text = ? WHERE image_url = ? ";
         $sqlObject->setQuery($updateSql, [
             $message,
@@ -793,10 +810,10 @@ WHERE filename = :image';
             $client = OpenAI::client($this->apiKey);
 
             $response = $client->chat()->create([
-                'model'       => $this->modelName,
-                'max_tokens'  => $this->maxTokens,
-                'temperature' => $this->temperature,
-                'messages'    => [
+                'model'                  => $this->modelName,
+                $this->apiMaxTokenString => (int)$this->maxTokens,
+                'temperature'            => $this->temperature,
+                'messages'               => [
                     ['role' => 'user', 'content' => $this->prompt],
                 ],
             ]);
@@ -874,10 +891,10 @@ WHERE filename = :image';
             $client = OpenAI::client($this->apiKey);
 
             $response = $client->chat()->create([
-                'model'       => $this->modelName,
-                'max_tokens'  => (int)$this->maxTokens,
-                'temperature' => $this->temperature,
-                'messages'    => [
+                'model'                  => $this->modelName,
+                $this->apiMaxTokenString => (int)$this->maxTokens,
+                'temperature'            => $this->temperature,
+                'messages'               => [
                     [
                         'role'    => 'user',
                         'content' => [
