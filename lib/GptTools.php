@@ -158,7 +158,9 @@ class GptTools
             return false;
         }
         // GptTools::logError($gptTools->getPrompt());
-        $gptTools->setTemperature($sqlObject->getValue('temp'));
+        if (strpos($gptTools->modelName, 'o1') === false && strpos($gptTools->modelName, 'o3') === false) {
+            $gptTools->setTemperature($sqlObject->getValue('temp'));
+        }
         $gptTools->setMaxTokens($sqlObject->getValue('max_token'));
         $metaDescription = self::removeHtmlEntities($gptTools->getMetaDescription());
 
@@ -341,6 +343,7 @@ class GptTools
     public static function processSingleImageEntry($sqlObject, $gptTools, $tableName): bool
     {
         $gptTools->setModelName($sqlObject->getValue('model'));
+        $gptTools->setApiMaxTokenString();
         $clang     = $sqlObject->getValue('clang');
         $clangName = rex_clang::get($clang)?->getName();
         $image     = $sqlObject->getValue('image_url');
@@ -359,7 +362,9 @@ class GptTools
             return false;
         }
         //GptTools::logError($gptTools->getPrompt());
-        $gptTools->setTemperature($sqlObject->getValue('temp'));
+        if (strpos($gptTools->modelName, 'o1') === false && strpos($gptTools->modelName, 'o3') === false) {
+            $gptTools->setTemperature($sqlObject->getValue('temp'));
+        }
         $gptTools->setMaxTokens($sqlObject->getValue('max_token'));
         $metaDescription = self::removeHtmlEntities($gptTools->getImageDescription());
 
@@ -809,14 +814,24 @@ WHERE filename = :image';
         try {
             $client = OpenAI::client($this->apiKey);
 
-            $response = $client->chat()->create([
-                'model'                  => $this->modelName,
-                $this->apiMaxTokenString => (int)$this->maxTokens,
-                'temperature'            => $this->temperature,
-                'messages'               => [
-                    ['role' => 'user', 'content' => $this->prompt],
-                ],
-            ]);
+            if (strpos($this->modelName, 'o1') === false && strpos($this->modelName, 'o3') === false) {
+                $response = $client->chat()->create([
+                    'model'                  => $this->modelName,
+                    $this->apiMaxTokenString => (int)$this->maxTokens,
+                    'temperature'            => $this->temperature,
+                    'messages'               => [
+                        ['role' => 'user', 'content' => $this->prompt],
+                    ],
+                ]);
+            } else {
+                $response = $client->chat()->create([
+                    'model'                  => $this->modelName,
+                    $this->apiMaxTokenString => (int)$this->maxTokens,
+                    'messages'               => [
+                        ['role' => 'user', 'content' => $this->prompt],
+                    ],
+                ]);
+            }
 
             // OpenAI doesn't return an error, so no error handling. Yay!
 
@@ -890,28 +905,52 @@ WHERE filename = :image';
         try {
             $client = OpenAI::client($this->apiKey);
 
-            $response = $client->chat()->create([
-                'model'                  => $this->modelName,
-                $this->apiMaxTokenString => (int)$this->maxTokens,
-                'temperature'            => $this->temperature,
-                'messages'               => [
-                    [
-                        'role'    => 'user',
-                        'content' => [
-                            [
-                                'type' => 'text',
-                                'text' => (string)$this->prompt,
-                            ],
-                            [
-                                'type'      => 'image_url',
-                                'image_url' => [
-                                    'url' => $imageUrlToBase64DataUrl,
+            if (strpos($this->modelName, 'o1') === false && strpos($this->modelName, 'o3') === false) {
+                $response = $client->chat()->create([
+                    'model'                  => $this->modelName,
+                    $this->apiMaxTokenString => (int)$this->maxTokens,
+                    'temperature'            => $this->temperature,
+                    'messages'               => [
+                        [
+                            'role'    => 'user',
+                            'content' => [
+                                [
+                                    'type' => 'text',
+                                    'text' => (string)$this->prompt,
+                                ],
+                                [
+                                    'type'      => 'image_url',
+                                    'image_url' => [
+                                        'url' => $imageUrlToBase64DataUrl,
+                                    ],
                                 ],
                             ],
                         ],
                     ],
-                ],
-            ]);
+                ]);
+            } else {
+                $response = $client->chat()->create([
+                    'model'                  => $this->modelName,
+                    $this->apiMaxTokenString => (int)$this->maxTokens,
+                    'messages'               => [
+                        [
+                            'role'    => 'user',
+                            'content' => [
+                                [
+                                    'type' => 'text',
+                                    'text' => (string)$this->prompt,
+                                ],
+                                [
+                                    'type'      => 'image_url',
+                                    'image_url' => [
+                                        'url' => $imageUrlToBase64DataUrl,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ]);
+            }
 
             return $response['choices'][0]['message']['content'];// Return the meta-description
         } catch (Exception $e) {
